@@ -11,8 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-from os import listdir
-from os.path import join
+import os
 
 import torchvision.transforms as transforms
 from PIL import Image
@@ -42,7 +41,8 @@ class DatasetFromFolder(Dataset):
             scale_factor (int): Coefficient of image scale.
         """
         super(DatasetFromFolder, self).__init__()
-        self.image_filenames = [join(images_dir, x) for x in listdir(images_dir)
+        self.image_filenames = [os.path.join(images_dir, x) for x in
+                                os.listdir(images_dir)
                                 if is_image_file(x)]
 
         crop_size = 32 - (32 % scale_factor)  # Valid crop size
