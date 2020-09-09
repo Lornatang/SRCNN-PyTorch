@@ -17,7 +17,7 @@ from .calculate_niqe import cal_niqe
 from .calculate_psnr import cal_psnr
 from .calculate_ssim import cal_ssim
 from .dataset import DatasetFromFolder
-from .model import SRCNN
+from .model import FSRCNN
 
 __all__ = [
     "cal_mse",
@@ -26,5 +26,5 @@ __all__ = [
     "cal_psnr",
     "cal_ssim",
     "DatasetFromFolder",
-    "SRCNN",
+    "FSRCNN",
 ]
