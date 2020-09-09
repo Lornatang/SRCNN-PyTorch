@@ -11,22 +11,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-import torch.nn as nn
-import torch.nn.functional as F
+from torch import nn
 from torch.cuda import amp
 
 
 class SRCNN(nn.Module):
-    def __init__(self):
+    def __init__(self, num_channels=1):
         super(SRCNN, self).__init__()
-        self.conv1 = nn.Conv2d(1, 64, kernel_size=9, padding=4)
-        self.conv2 = nn.Conv2d(64, 32, kernel_size=1, padding=0)
-        self.conv3 = nn.Conv2d(32, 1, kernel_size=5, padding=2)
+        self.conv1 = nn.Conv2d(num_channels, 64, kernel_size=9, padding=9 // 2)
+        self.conv2 = nn.Conv2d(64, 32, kernel_size=5, padding=5 // 2)
+        self.conv3 = nn.Conv2d(32, num_channels, kernel_size=5, padding=5 // 2)
+        self.relu = nn.ReLU(inplace=True)
 
     @amp.autocast()
-    def forward(self, inputs):
-        out = F.relu(self.conv1(inputs))
-        out = F.relu(self.conv2(out))
-        out = self.conv3(out)
-
-        return out
+    def forward(self, x):
+        x = self.relu(self.conv1(x))
+        x = self.relu(self.conv2(x))
+        x = self.conv3(x)
+        return x
