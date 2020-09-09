@@ -95,6 +95,28 @@ optional arguments:
 python test_benchmark.py --dataroot ./data/DIV2K --weights ./weights/srcnn_X4.pth --scale-factor 4 --cuda
 ```
 
+Test single picture
+```bash
+usage: test_image.py [-h] [--file FILE] [--weights WEIGHTS] [--cuda]
+                     [--scale-factor SCALE_FACTOR] [--manualSeed MANUALSEED]
+
+PyTorch Super Resolution CNN.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --file FILE           Test low resolution image name.
+                        (default:`./assets/baby.png`)
+  --weights WEIGHTS     Generator model name. (default:`weights/srcnn_X4.pth`)
+  --cuda                Enables cuda
+  --scale-factor SCALE_FACTOR
+                        Super resolution upscale factor
+  --manualSeed MANUALSEED
+                        Seed for initializing training. (default:none)
+
+# Example
+python test_image.py --file ./assets/baby.png --weights ./weights/srcnn_X4.pth --scale-factor 4 --cuda
+```
+
 ### Train (e.g DIV2K)
 
 ```bash
