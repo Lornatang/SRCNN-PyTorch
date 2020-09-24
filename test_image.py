@@ -32,17 +32,9 @@ parser.add_argument("--weights", type=str, default="weights/srcnn_4x.pth",
 parser.add_argument("--cuda", action="store_true", help="Enables cuda")
 parser.add_argument("--scale-factor", default=4, type=int, choices=[2, 3, 4],
                     help="Super resolution upscale factor. (default:4)")
-parser.add_argument("--manualSeed", type=int,
-                    help="Seed for initializing training. (default:none)")
 
 args = parser.parse_args()
 print(args)
-
-if args.manualSeed is None:
-    args.manualSeed = random.randint(1, 10000)
-print("Random Seed: ", args.manualSeed)
-random.seed(args.manualSeed)
-torch.manual_seed(args.manualSeed)
 
 cudnn.benchmark = True
 
