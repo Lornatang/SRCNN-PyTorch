@@ -40,7 +40,7 @@ def progress_bar(current_epoch, total_epoch, current_batch, total_batch, msg=Non
     current_len = int(TOTAL_BAR_LENGTH * (current_batch + 1) / total_batch)
     rest_len = int(TOTAL_BAR_LENGTH - current_len) - 1
 
-    sys.stdout.write(f"[{current_epoch + 1}/{total_epoch}][{total_batch + 1}/{total_batch}]")
+    sys.stdout.write(f"[{current_epoch + 1}/{total_epoch}][{current_batch + 1}/{total_batch}]")
     sys.stdout.write(" [")
     for i in range(current_len):
         sys.stdout.write("=")
