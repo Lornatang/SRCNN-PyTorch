@@ -12,4 +12,4 @@ Download the image dataset from [url](https://pan.baidu.com/s/1IpSz2RiQhKNgbqXIE
 
 ### Test Video Dataset
 
-The test dataset are sampled from Music Videos. Download the video dataset from [url](https://pan.baidu.com/s/1BQ1D-JNZKs06GqCRFlrwTQ passwd:`7uln`, and then extract it into here.
+The test dataset are sampled from Music Videos. Download the video dataset from [url](https://pan.baidu.com/s/1BQ1D-JNZKs06GqCRFlrwTQ) passwd:`7uln`, and then extract it into here.
