@@ -57,7 +57,7 @@ videoCapture = cv2.VideoCapture(video_name)
 fps = videoCapture.get(cv2.CAP_PROP_FPS)
 size = (int(videoCapture.get(cv2.CAP_PROP_FRAME_WIDTH) * args.scale_factor),
         int(videoCapture.get(cv2.CAP_PROP_FRAME_HEIGHT)) * args.scale_factor)
-videoWriter = cv2.VideoWriter(f"srcnn_{args.scale_factor}x_{video_name.split('/')[-1].split('.')[0]}.mp4",
+videoWriter = cv2.VideoWriter(f"srcnn_{args.scale_factor}x_{video_name.split('/')[-1]}",
                               cv2.VideoWriter_fourcc(*"MPEG"), fps, size)
 
 # read frame
