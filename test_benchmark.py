@@ -13,8 +13,6 @@
 # ==============================================================================
 import argparse
 import math
-import os
-import random
 
 import torch.backends.cudnn as cudnn
 import torch.nn as nn
@@ -23,10 +21,13 @@ import torch.utils.data.distributed
 
 from srcnn_pytorch import DatasetFromFolder
 from srcnn_pytorch import SRCNN
+from srcnn_pytorch import progress_bar
 
 parser = argparse.ArgumentParser(description="PyTorch Super Resolution CNN.")
 parser.add_argument("--dataroot", type=str, default="./data/DIV2K",
                     help="Path to datasets. (default:`./data/DIV2K`)")
+parser.add_argument("--image-size", type=int, default=256,
+                    help="Size of the data crop (squared assumed). (default:256)")
 parser.add_argument("-j", "--workers", default=0, type=int, metavar="N",
                     help="Number of data loading workers. (default:0)")
 parser.add_argument("--scale-factor", type=int, default=4, choices=[2, 3, 4],
@@ -44,6 +45,7 @@ if torch.cuda.is_available() and not args.cuda:
     print("WARNING: You have a CUDA device, so you should probably run with --cuda")
 
 dataset = DatasetFromFolder(f"{args.dataroot}/val",
+                            image_size=args.image_size,
                             scale_factor=args.scale_factor)
 
 dataloader = torch.utils.data.DataLoader(dataset,
@@ -55,18 +57,20 @@ dataloader = torch.utils.data.DataLoader(dataset,
 device = torch.device("cuda:0" if args.cuda else "cpu")
 
 model = SRCNN().to(device)
-
 model.load_state_dict(torch.load(args.weights, map_location=device))
 criterion = nn.MSELoss().to(device)
 
 # Test
-avg_psnr = 0
+model.eval()
+avg_psnr = 0.
 with torch.no_grad():
-    for data in dataloader:
-        inputs, target = data[0].to(device), data[1].to(device)
+    for iteration, (inputs, target) in enumerate(dataloader):
+        inputs, target = inputs.to(device), target.to(device)
 
-        out = model(inputs)
-        loss = criterion(out, target)
-        psnr = 10 * math.log10(1 / loss.item())
+        prediction = model(inputs)
+        mse = criterion(prediction, target)
+        psnr = 10 * math.log10(1 / mse.item())
         avg_psnr += psnr
-print(f"EVal average PSNR: {avg_psnr / len(dataloader):.2f} dB.")
+        progress_bar(iteration, len(dataloader), f"PSNR: {avg_psnr / (iteration + 1):.2f} dB")
+
+print(f"Average PSNR: {avg_psnr / len(dataloader):.2f} dB.")
