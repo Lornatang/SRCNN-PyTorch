@@ -41,8 +41,8 @@ parser.add_argument("-b", "--batch-size", default=16, type=int,
                     help="mini-batch size (default: 16), this is the total "
                          "batch size of all GPUs on the current node when "
                          "using Data Parallel or Distributed Data Parallel.")
-parser.add_argument("--lr", type=float, default=0.0001,
-                    help="Learning rate. (default:0.0001)")
+parser.add_argument("--lr", type=float, default=0.01,
+                    help="Learning rate. (default:0.01)")
 parser.add_argument("--scale-factor", type=int, default=4, choices=[2, 3, 4],
                     help="Low to high resolution scaling factor. (default:4).")
 parser.add_argument("-p", "--print-freq", default=5, type=int,
@@ -100,9 +100,8 @@ if args.weights:
 
 criterion = nn.MSELoss().to(device)
 # we use Adam instead of SGD like in the paper, because it's faster
-optimizer = optim.Adam([{"params": model.conv1.parameters(), "lr": args.lr},
-                        {"params": model.conv2.parameters(), "lr": args.lr},
-                        {"params": model.conv3.parameters(), "lr": args.lr}, ], lr=args.lr * 0.1, )
+optimizer = optim.Adam(model.parameters(), lr=args.lr)
+scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[50, 75, 100], gamma=0.5)  # lr decay
 
 best_psnr = 0.
 
@@ -112,8 +111,6 @@ scaler = amp.GradScaler()
 for epoch in range(args.epochs):
     model.train()
     train_loss = 0.
-    print("\n")
-    print(f"Start train epoch {epoch + 1}.")
     for iteration, (inputs, target) in enumerate(train_dataloader):
         optimizer.zero_grad()
 
@@ -140,6 +137,7 @@ for epoch in range(args.epochs):
 
         # Updates the scale for next iteration.
         scaler.update()
+        scheduler.step()
 
         train_loss += loss.item()
 
@@ -148,8 +146,6 @@ for epoch in range(args.epochs):
     print(f"Training average loss: {train_loss / len(train_dataloader):.6f}")
 
     # Test
-    print("\n")
-    print(f"Start eval epoch {epoch + 1}.")
     model.eval()
     avg_psnr = 0.
     with torch.no_grad():
