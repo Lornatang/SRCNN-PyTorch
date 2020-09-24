@@ -137,7 +137,6 @@ for epoch in range(args.epochs):
 
         # Updates the scale for next iteration.
         scaler.update()
-        scheduler.step()
 
         train_loss += loss.item()
 
@@ -157,6 +156,9 @@ for epoch in range(args.epochs):
             psnr = 10 * math.log10(1 / mse.item())
             avg_psnr += psnr
     print(f"Average PSNR: {avg_psnr / len(val_dataloader):.2f} dB.")
+
+    # Dynamic adjustment of learning rate.
+    scheduler.step()
 
     # Save model
     if (epoch + 1) % 20 == 0:
