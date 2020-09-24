@@ -26,12 +26,12 @@ parser = argparse.ArgumentParser(description="PyTorch Super Resolution CNN.")
 parser.add_argument("--file", type=str, default="./assets/baby.png",
                     help="Test low resolution image name. "
                          "(default:`./assets/baby.png`)")
-parser.add_argument("--weights", type=str, default="weights/srcnn_X4.pth",
+parser.add_argument("--weights", type=str, default="weights/srcnn_4x.pth",
                     help="Generator model name.  "
-                         "(default:`weights/srcnn_X4.pth`)")
+                         "(default:`weights/srcnn_4x.pth`)")
 parser.add_argument("--cuda", action="store_true", help="Enables cuda")
-parser.add_argument("--scale-factor", default=4, type=int,
-                    help="Super resolution upscale factor")
+parser.add_argument("--scale-factor", default=4, type=int, choices=[2, 3, 4],
+                    help="Super resolution upscale factor. (default:4)")
 parser.add_argument("--manualSeed", type=int,
                     help="Seed for initializing training. (default:none)")
 
@@ -78,4 +78,4 @@ out_image_y = Image.fromarray(np.uint8(out_image_y[0]), mode="L")
 
 out_img = Image.merge("YCbCr", [out_image_y, cb, cr]).convert("RGB")
 # before converting the result in RGB
-out_img.save(f"srcnn_X{args.scale_factor}.png")
+out_img.save(f"srcnn_{args.scale_factor}x.png")
