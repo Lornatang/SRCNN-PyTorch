@@ -18,7 +18,7 @@ from PIL import Image
 from torch.utils.data import Dataset
 
 
-def is_image_file(filename):
+def check_image_file(filename):
     r"""Determine whether the files in the directory are in image format.
 
     Args:
@@ -28,24 +28,27 @@ def is_image_file(filename):
         Returns True if it is an image and False if it is not.
 
     """
-    return any(
-        filename.endswith(extension) for extension in [".png", ".jpg", ".jpeg"])
+    return any(filename.endswith(extension) for extension in [".bmp", ".BMP",
+                                                              ".jpg", ".JPG",
+                                                              ".png", ".PNG",
+                                                              ".jpeg", ".JPEG"])
 
 
 class DatasetFromFolder(Dataset):
-    def __init__(self, images_dir, scale_factor):
+    def __init__(self, images_dir, image_size=256, scale_factor=4):
         r""" Dataset loading base class.
 
         Args:
             images_dir (str): The directory address where the image is stored.
-            scale_factor (int): Coefficient of image scale.
+            image_size (int): Original high resolution image size. Default: 256.
+            scale_factor (int): Coefficient of image scale. Default: 4.
         """
         super(DatasetFromFolder, self).__init__()
         self.image_filenames = [os.path.join(images_dir, x) for x in
                                 os.listdir(images_dir)
-                                if is_image_file(x)]
+                                if check_image_file(x)]
 
-        crop_size = 32 - (32 % scale_factor)  # Valid crop size
+        crop_size = image_size - (image_size % scale_factor)  # Valid crop size
         self.input_transform = transforms.Compose(
             [transforms.CenterCrop(crop_size),  # cropping the image
              transforms.Resize(crop_size // scale_factor),
