@@ -1,5 +1,11 @@
 ## Datasets
 
+### Train Image Dataset
+Run this command
+```bash
+bash download_dataset.sh
+```
+
 ### Test Image Dataset
 The test image dataset are sampled from 
 - | **Set 5** |  [Bevilacqua et al. BMVC 2012](http://people.rennes.inria.fr/Aline.Roumy/results/SR_BMVC12.html)
