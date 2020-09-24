@@ -31,24 +31,24 @@ parser.add_argument("--dataroot", type=str, default="./data/DIV2K",
                     help="Path to datasets. (default:`./data/DIV2K`)")
 parser.add_argument("-j", "--workers", default=0, type=int, metavar="N",
                     help="Number of data loading workers. (default:0)")
-parser.add_argument("--epochs", default=200, type=int, metavar="N",
+parser.add_argument("--epochs", default=2000, type=int, metavar="N",
                     help="Number of total epochs to run. (default:200)")
-parser.add_argument("-b", "--batch-size", default=64, type=int,
+parser.add_argument("-b", "--batch-size", default=16, type=int,
                     metavar="N",
-                    help="mini-batch size (default: 64), this is the total "
+                    help="mini-batch size (default: 16), this is the total "
                          "batch size of all GPUs on the current node when "
                          "using Data Parallel or Distributed Data Parallel.")
 parser.add_argument("--lr", type=float, default=0.0001,
                     help="Learning rate. (default:0.0001)")
-parser.add_argument("--scale-factor", type=int, default=4,
+parser.add_argument("--scale-factor", type=int, default=4, choices=[2, 3, 4],
                     help="Low to high resolution scaling factor. (default:4).")
 parser.add_argument("-p", "--print-freq", default=5, type=int,
                     metavar="N", help="Print frequency. (default:5)")
 parser.add_argument("--cuda", action="store_true", help="Enables cuda")
 parser.add_argument("--weights", default="",
                     help="Path to weights (to continue training).")
-parser.add_argument("--manualSeed", type=int,
-                    help="Seed for initializing training. (default:none)")
+parser.add_argument("--manualSeed", type=int, default=0,
+                    help="Seed for initializing training. (default:0)")
 
 args = parser.parse_args()
 print(args)
@@ -90,6 +90,7 @@ model = SRCNN().to(device)
 
 if args.weights:
     model.load_state_dict(torch.load(args.weights, map_location=device))
+
 criterion = nn.MSELoss().to(device)
 optimizer = optim.Adam(
     # we use Adam instead of SGD like in the paper, because it's faster
@@ -136,9 +137,9 @@ for epoch in range(args.epochs):
         scaler.update()
 
         epoch_loss += loss.item()
+        print(f"Step: {len(train_dataloader) * epoch + iteration + 1} Loss: {loss.item():.6f}")
 
-    print(f"Epoch {epoch}. "
-          f"Training loss: {epoch_loss / len(train_dataloader):.6f}")
+    print(f"Epoch {epoch + 1}. Training avg loss: {epoch_loss / len(train_dataloader):.6f}")
 
     # Test
     avg_psnr = 0
@@ -153,8 +154,8 @@ for epoch in range(args.epochs):
     print(f"Average PSNR: {avg_psnr / len(val_dataloader):.2f} dB.")
 
     # Save model
-    torch.save(model.state_dict(), f"weights/model_{epoch}.pth")
+    if (epoch + 1) % 20 == 0:
+        torch.save(model.state_dict(), f"weights/srcnn_{args.scale_factor}x_epoch_{epoch + 1}.pth")
     if avg_psnr > best_psnr:
         best_psnr = avg_psnr
-        torch.save(model.state_dict(),
-                   f"weights/srcnn_X{args.scale_factor}.pth")
+        torch.save(model.state_dict(), f"weights/srcnn_{args.scale_factor}x.pth")
