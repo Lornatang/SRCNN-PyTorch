@@ -93,6 +93,7 @@ val_dataloader = torch.utils.data.DataLoader(val_dataset,
 device = torch.device("cuda:0" if args.cuda else "cpu")
 
 model = SRCNN().to(device)
+model.weight_init()
 
 if args.weights:
     model.load_state_dict(torch.load(args.weights, map_location=device))
