@@ -14,7 +14,7 @@
 import sys
 import time
 
-TOTAL_BAR_LENGTH = 120
+TOTAL_BAR_LENGTH = 50
 LAST_T = time.time()
 BEGIN_T = LAST_T
 
@@ -38,7 +38,7 @@ def progress_bar(current, total, msg=None):
     current_len = int(TOTAL_BAR_LENGTH * (current + 1) / total)
     rest_len = int(TOTAL_BAR_LENGTH - current_len) - 1
 
-    sys.stdout.write(f" {current + 1}/{total}")
+    sys.stdout.write(f"[{current + 1}/{total}]")
     sys.stdout.write(" [")
     for i in range(current_len):
         sys.stdout.write("=")
@@ -52,8 +52,8 @@ def progress_bar(current, total, msg=None):
     LAST_T = current_time
     total_time = current_time - BEGIN_T
 
-    time_used = f"  Step: {step_time}"
-    time_used += f" | Total: {total_time}"
+    time_used = f"  Step time: {step_time:.2f}s"
+    time_used += f" | Total time: {total_time:.2f}s"
     if msg:
         time_used += " | " + msg
 
