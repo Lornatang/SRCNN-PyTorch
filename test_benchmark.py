@@ -30,8 +30,8 @@ parser.add_argument("--image-size", type=int, default=256,
                     help="Size of the data crop (squared assumed). (default:256)")
 parser.add_argument("-j", "--workers", default=0, type=int, metavar="N",
                     help="Number of data loading workers. (default:0)")
-parser.add_argument("--scale-factor", type=int, default=4, choices=[2, 3, 4],
-                    help="Low to high resolution scaling factor. (default:4).")
+parser.add_argument("--scale-factor", type=int, required=True, choices=[2, 3, 4],
+                    help="Low to high resolution scaling factor.")
 parser.add_argument("--cuda", action="store_true", help="Enables cuda")
 parser.add_argument("--weights", type=str, required=True,
                     help="Path to weights.")
@@ -71,6 +71,6 @@ with torch.no_grad():
         mse = criterion(prediction, target)
         psnr = 10 * math.log10(1 / mse.item())
         avg_psnr += psnr
-        progress_bar(iteration, len(dataloader), f"PSNR: {avg_psnr / (iteration + 1):.2f} dB")
+        progress_bar(0, 1, iteration, len(dataloader), f"PSNR: {psnr:.2f} dB")
 
 print(f"Average PSNR: {avg_psnr / len(dataloader):.2f} dB.")
