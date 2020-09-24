@@ -29,12 +29,7 @@ parser.add_argument("--dataroot", type=str, default="./data/DIV2K",
                     help="Path to datasets. (default:`./data/DIV2K`)")
 parser.add_argument("-j", "--workers", default=0, type=int, metavar="N",
                     help="Number of data loading workers. (default:0)")
-parser.add_argument("-b", "--batch-size", default=8, type=int,
-                    metavar="N",
-                    help="mini-batch size (default: 8), this is the total "
-                         "batch size of all GPUs on the current node when "
-                         "using Data Parallel or Distributed Data Parallel.")
-parser.add_argument("--scale-factor", type=int, default=4,
+parser.add_argument("--scale-factor", type=int, default=4, choices=[2, 3, 4],
                     help="Low to high resolution scaling factor. (default:4).")
 parser.add_argument("--cuda", action="store_true", help="Enables cuda")
 parser.add_argument("--weights", type=str, required=True,
@@ -44,11 +39,6 @@ parser.add_argument("--manualSeed", type=int,
 
 args = parser.parse_args()
 print(args)
-
-try:
-    os.makedirs(args.outf)
-except OSError:
-    pass
 
 if args.manualSeed is None:
     args.manualSeed = random.randint(1, 10000)
@@ -67,7 +57,8 @@ dataset = DatasetFromFolder(f"{args.dataroot}/val",
 
 dataloader = torch.utils.data.DataLoader(dataset,
                                          batch_size=1,
-                                         shuffle=False, pin_memory=True,
+                                         shuffle=False,
+                                         pin_memory=True,
                                          num_workers=int(args.workers))
 
 device = torch.device("cuda:0" if args.cuda else "cpu")
