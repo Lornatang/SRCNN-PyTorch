@@ -76,19 +76,23 @@ python test.py --dataroot ./data/Set5 --weights ./weights/srcnn_4x.pth --scale-f
 
 Evaluate the benchmark of validation data set in the network
 ```bash
-usage: test_benchmark.py [-h] [--dataroot DATAROOT] [-j N]
-                         [--scale-factor {2,3,4}] [--cuda] --weights WEIGHTS
+usage: test_benchmark.py [-h] [--dataroot DATAROOT] [--image-size IMAGE_SIZE]
+                         [-j N] [--scale-factor {2,3,4}] [--cuda] --weights
+                         WEIGHTS
 
 PyTorch Super Resolution CNN.
 
 optional arguments:
   -h, --help            show this help message and exit
   --dataroot DATAROOT   Path to datasets. (default:`./data/DIV2K`)
+  --image-size IMAGE_SIZE
+                        Size of the data crop (squared assumed). (default:256)
   -j N, --workers N     Number of data loading workers. (default:0)
   --scale-factor {2,3,4}
                         Low to high resolution scaling factor. (default:4).
   --cuda                Enables cuda
   --weights WEIGHTS     Path to weights.
+
 # Example
 python test_benchmark.py --dataroot ./data/DIV2K --weights ./weights/srcnn_4x.pth --scale-factor 4 --cuda
 ```
@@ -116,9 +120,10 @@ python test_image.py --file ./assets/baby.png --weights ./weights/srcnn_4x.pth -
 ### Train (e.g DIV2K)
 
 ```bash
-usage: train.py [-h] [--dataroot DATAROOT] [-j N] [--epochs N] [-b N]
-                [--lr LR] [--scale-factor {2,3,4}] [-p N] [--cuda]
-                [--weights WEIGHTS] [--manualSeed MANUALSEED]
+usage: train.py [-h] [--dataroot DATAROOT] [-j N] [--epochs N]
+                [--image-size IMAGE_SIZE] [-b N] [--lr LR]
+                [--scale-factor {2,3,4}] [-p N] [--cuda] [--weights WEIGHTS]
+                [--manualSeed MANUALSEED]
 
 PyTorch Super Resolution CNN.
 
@@ -127,6 +132,8 @@ optional arguments:
   --dataroot DATAROOT   Path to datasets. (default:`./data/DIV2K`)
   -j N, --workers N     Number of data loading workers. (default:0)
   --epochs N            Number of total epochs to run. (default:200)
+  --image-size IMAGE_SIZE
+                        Size of the data crop (squared assumed). (default:256)
   -b N, --batch-size N  mini-batch size (default: 16), this is the total batch
                         size of all GPUs on the current node when using Data
                         Parallel or Distributed Data Parallel.
