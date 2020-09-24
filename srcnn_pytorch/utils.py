@@ -62,7 +62,7 @@ def progress_bar(current_epoch, total_epoch, current_batch, total_batch, msg=Non
     msg = time_used
     sys.stdout.write(msg)
 
-    if current < total - 1:
+    if current_batch < total_batch - 1:
         sys.stdout.write("\r")
     else:
         sys.stdout.write("\n")
