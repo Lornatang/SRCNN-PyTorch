@@ -34,23 +34,14 @@ parser.add_argument("--scale-factor", type=int, default=4, choices=[2, 3, 4],
 parser.add_argument("--cuda", action="store_true", help="Enables cuda")
 parser.add_argument("--weights", type=str, required=True,
                     help="Path to weights.")
-parser.add_argument("--manualSeed", type=int,
-                    help="Seed for initializing training. (default:none)")
 
 args = parser.parse_args()
 print(args)
 
-if args.manualSeed is None:
-    args.manualSeed = random.randint(1, 10000)
-print("Random Seed: ", args.manualSeed)
-random.seed(args.manualSeed)
-torch.manual_seed(args.manualSeed)
-
 cudnn.benchmark = True
 
 if torch.cuda.is_available() and not args.cuda:
-    print("WARNING: You have a CUDA device, "
-          "so you should probably run with --cuda")
+    print("WARNING: You have a CUDA device, so you should probably run with --cuda")
 
 dataset = DatasetFromFolder(f"{args.dataroot}/val",
                             scale_factor=args.scale_factor)
