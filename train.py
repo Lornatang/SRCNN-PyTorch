@@ -139,7 +139,7 @@ for epoch in range(args.epochs):
         epoch_loss += loss.item()
         print(f"Step: {len(train_dataloader) * epoch + iteration + 1} Loss: {loss.item():.6f}")
 
-    print(f"Epoch {epoch + 1}. Training avg loss: {epoch_loss / len(train_dataloader):.6f}")
+    print(f"Epoch [{epoch + 1}/[{args.epochs}]. Training avg loss: {epoch_loss / len(train_dataloader):.6f}")
 
     # Test
     avg_psnr = 0
