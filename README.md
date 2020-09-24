@@ -117,6 +117,12 @@ optional arguments:
 python test_image.py --file ./assets/baby.png --weights ./weights/srcnn_4x.pth --scale-factor 4 --cuda
 ```
 
+Low resolution / Recovered High Resolution / Ground Truth
+
+<span align="center"><img src="assets/result.png" alt="">
+</span>
+
+
 ### Train (e.g DIV2K)
 
 ```bash
