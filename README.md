@@ -117,11 +117,30 @@ optional arguments:
 python test_image.py --file ./assets/baby.png --weights ./weights/srcnn_4x.pth --scale-factor 4 --cuda
 ```
 
+Test single video
+```bash
+usage: test_video.py [-h] --file FILE --weights WEIGHTS --scale-factor {2,3,4}
+                     [--view VIEW] [--cuda]
+
+SRCNN algorithm is applied to video files.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --file FILE           Test low resolution video name.
+  --weights WEIGHTS     Generator model name.
+  --scale-factor {2,3,4}
+                        Super resolution upscale factor. (default:4)
+  --view VIEW           Super resolution real time to show.
+  --cuda                Enables cuda
+
+# Example
+python test_video.py --file ./video/1.mp4 --weights ./weights/srcnn_4x.pth --scale-factor 4 --view False --cuda
+```
+
 Low resolution / Recovered High Resolution / Ground Truth
 
 <span align="center"><img src="assets/result.png" alt="">
 </span>
-
 
 ### Train (e.g DIV2K)
 
