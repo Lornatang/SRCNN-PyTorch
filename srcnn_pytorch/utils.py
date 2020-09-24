@@ -19,12 +19,14 @@ LAST_T = time.time()
 BEGIN_T = LAST_T
 
 
-def progress_bar(current, total, msg=None):
+def progress_bar(current_epoch, total_epoch, current_batch, total_batch, msg=None):
     """ A progress bar for training.
 
     Args:
-        current (int): Number of current training batches.
-        total (int): Total number of training batches required.
+        current_epoch (int): Number of current training epoch.
+        total_epoch (int): Total number of training epochs required.
+        current_batch (int): Number of current training batches.
+        total_batch (int): Total number of training batches required.
         msg (str): Output information.
 
     Returns:
@@ -32,13 +34,13 @@ def progress_bar(current, total, msg=None):
 
     """
     global LAST_T, BEGIN_T
-    if current == 0:
+    if current_batch == 0:
         BEGIN_T = time.time()  # Reset for new bar.
 
-    current_len = int(TOTAL_BAR_LENGTH * (current + 1) / total)
+    current_len = int(TOTAL_BAR_LENGTH * (current_batch + 1) / total_batch)
     rest_len = int(TOTAL_BAR_LENGTH - current_len) - 1
 
-    sys.stdout.write(f"[{current + 1}/{total}]")
+    sys.stdout.write(f"[{current_epoch + 1}/{total_epoch}][{total_batch + 1}/{total_batch}]")
     sys.stdout.write(" [")
     for i in range(current_len):
         sys.stdout.write("=")
