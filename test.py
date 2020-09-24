@@ -48,6 +48,11 @@ parser.add_argument("--manualSeed", type=int,
 args = parser.parse_args()
 print(args)
 
+try:
+    os.makedirs("result")
+except OSError:
+    pass
+
 if args.manualSeed is None:
     args.manualSeed = random.randint(1, 10000)
 print("Random Seed: ", args.manualSeed)
@@ -105,10 +110,10 @@ for filename in os.listdir(dataroot):
 
     out_img = Image.merge("YCbCr", [out_image_y, cb, cr]).convert("RGB")
     # before converting the result in RGB
-    out_img.save(f"results/{filename}")
+    out_img.save(f"result/{filename}")
 
     # Evaluate performance
-    src_img = cv2.imread(f"results/{filename}")
+    src_img = cv2.imread(f"result/{filename}")
     dst_img = cv2.imread(f"{target}/{filename}")
 
     total_mse_value += cal_mse(src_img, dst_img)
@@ -116,7 +121,7 @@ for filename in os.listdir(dataroot):
     total_psnr_value += cal_psnr(src_img, dst_img)
     total_ssim_value += cal_ssim(src_img, dst_img)
     total_ms_ssim_value += msssim(src_img, dst_img)
-    total_niqe_value += cal_niqe(f"results/{filename}")
+    total_niqe_value += cal_niqe(f"result/{filename}")
     total_sam_value += sam(src_img, dst_img)
     total_vif_value += vifp(src_img, dst_img)
 
