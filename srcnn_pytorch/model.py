@@ -29,3 +29,14 @@ class SRCNN(nn.Module):
         x = self.relu(self.conv2(x))
         x = self.conv3(x)
         return x
+
+    def weight_init(self, mean=0.0, std=0.02):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                m.weight.data.normal_(mean, std)
+                if m.bias is not None:
+                    m.bias.data.zero_()
+            if isinstance(m, nn.ConvTranspose2d):
+                m.weight.data.normal_(0.0, 0.0001)
+                if m.bias is not None:
+                    m.bias.data.zero_()
