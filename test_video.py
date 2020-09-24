@@ -19,19 +19,21 @@ import torch.backends.cudnn as cudnn
 import torch.utils.data.distributed
 import torchvision.transforms as transforms
 from PIL import Image
+import time
 
 from srcnn_pytorch import SRCNN
 
 parser = argparse.ArgumentParser(description="SRCNN algorithm is applied to video files.")
 parser.add_argument("--file", type=str, required=True,
                     help="Test low resolution video name.")
-parser.add_argument("--weights", type=str, default="weights/srcnn_4x.pth",
-                    help="Generator model name. (default:`weights/srcnn_4x.pth`)")
-parser.add_argument("--cuda", action="store_true", help="Enables cuda")
-parser.add_argument("--scale-factor", default=4, type=int, choices=[2, 3, 4],
+parser.add_argument("--weights", type=str, required=True,
+                    help="Generator model name. ")
+parser.add_argument("--scale-factor", type=int, required=True, choices=[2, 3, 4],
                     help="Super resolution upscale factor. (default:4)")
-parser.add_argument("--view", default=False, type=bool,
+parser.add_argument("--view", action="store_true",
                     help="Super resolution real time to show.")
+parser.add_argument("--cuda", action="store_true",
+                    help="Enables cuda")
 
 args = parser.parse_args()
 print(args)
@@ -51,21 +53,26 @@ model.load_state_dict(torch.load(args.weights, map_location=device))
 
 # Open video file
 video_name = args.file
-videoCapture = cv2.VideoCapture(video_name)
+print(f"Reading {video_name.split('/')[-1]}...")
+video_capture = cv2.VideoCapture(video_name)
 
 # Prepare to write the processed image into the video.
-fps = videoCapture.get(cv2.CAP_PROP_FPS)
-size = (int(videoCapture.get(cv2.CAP_PROP_FRAME_WIDTH) * args.scale_factor),
-        int(videoCapture.get(cv2.CAP_PROP_FRAME_HEIGHT)) * args.scale_factor)
+fps = video_capture.get(cv2.CAP_PROP_FPS)
+size = (int(video_capture.get(cv2.CAP_PROP_FRAME_WIDTH) * args.scale_factor),
+        int(video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT)) * args.scale_factor)
+total_frame = int(video_capture.get(cv2.CAP_PROP_FRAME_COUNT))
 videoWriter = cv2.VideoWriter(f"srcnn_{args.scale_factor}x_{video_name.split('/')[-1]}",
                               cv2.VideoWriter_fourcc(*"MPEG"), fps, size)
+print(f"Video `{video_name.split('/')[-1]}` total frame: {total_frame} fps: {fps:.2f} size: {size[0]} * {size[1]}")
 
 # read frame
-success, frame = videoCapture.read()
+success, raw_frame = video_capture.read()
 
+frame = 1
+start_time = time.time()
 while success:
-    img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)).convert('YCbCr')
-    y, cb, cr = img.split()
+    image = Image.fromarray(cv2.cvtColor(raw_frame, cv2.COLOR_BGR2RGB)).convert("YCbCr")
+    y, cb, cr = image.split()
     preprocess = transforms.ToTensor()
     inputs = preprocess(y).view(1, -1, y.size[1], y.size[0])
 
@@ -80,17 +87,23 @@ while success:
 
     out_image_cb = cb.resize(out_image_y.size, Image.BICUBIC)
     out_image_cr = cr.resize(out_image_y.size, Image.BICUBIC)
-    out_image = Image.merge("YCbCr", [out_image_y, out_image_cb, out_image_cr]).convert("RGB")
+    sr_frame = Image.merge("YCbCr", [out_image_y, out_image_cb, out_image_cr]).convert("RGB")
     # before converting the result in RGB
-    out_image = cv2.cvtColor(np.asarray(out_image), cv2.COLOR_RGB2BGR)
+    sr_frame = cv2.cvtColor(np.asarray(sr_frame), cv2.COLOR_RGB2BGR)
+
+    print(f"Process {frame} frame.")
 
     if args.view:
         # display video
-        cv2.imshow("LR Video ", frame)
-        cv2.imshow("SRCNN Video ", out_image)
-        cv2.waitKey(1)
+        multi_images = np.hstack([raw_frame, sr_frame])
+        cv2.imshow("LR video convert HR video ", multi_images)
+        if cv2.waitKey(1) & 0xFF == ord("q"):
+            break
     else:
         # save video
-        videoWriter.write(out_image)
+        videoWriter.write(sr_frame)
     # next frame
-    success, frame = videoCapture.read()
+    success, raw_frame = video_capture.read()
+    frame += 1
+
+print(f"Done! Use time: {time.time() - start_time:.1f}s.")
