@@ -12,7 +12,6 @@
 # limitations under the License.
 # ==============================================================================
 import argparse
-import random
 
 import numpy as np
 import torch.backends.cudnn as cudnn
@@ -50,6 +49,7 @@ model = SRCNN().to(device)
 # Load state dicts
 model.load_state_dict(torch.load(args.weights, map_location=device))
 
+# Open image
 image = Image.open(args.file).convert("YCbCr")
 image_width = int(image.size[0] * args.scale_factor)
 image_height = int(image.size[1] * args.scale_factor)
@@ -68,6 +68,8 @@ out_image_y *= 255.0
 out_image_y = out_image_y.clip(0, 255)
 out_image_y = Image.fromarray(np.uint8(out_image_y[0]), mode="L")
 
-out_img = Image.merge("YCbCr", [out_image_y, cb, cr]).convert("RGB")
+out_img_cb = cb.resize(out_image_y.size, Image.BICUBIC)
+out_img_cr = cr.resize(out_image_y.size, Image.BICUBIC)
+out_img = Image.merge("YCbCr", [out_image_y, out_img_cb, out_img_cr]).convert("RGB")
 # before converting the result in RGB
 out_img.save(f"srcnn_{args.scale_factor}x.png")
