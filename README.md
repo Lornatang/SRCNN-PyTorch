@@ -1,19 +1,25 @@
 # SRCNN-PyTorch
 
 ### Overview
+
 This repository contains an op-for-op PyTorch reimplementation of [Image Super-Resolution Using Deep Convolutional Networks](https://arxiv.org/abs/1501.00092).
 
 ### Table of contents
-1. [About Image Super-Resolution Using Deep Convolutional Networks](#about-image-super-resolution-using-deep-convolutional-networks)
-2. [Installation](#installation)
-    * [Clone and install requirements](#clone-and-install-requirements)
-    * [Download pretrained weights](#download-pretrained-weights)
-    * [Download dataset](#download-dataset)
-3. [Test](#test)
-4. [Train](#train-eg-div2k)
-    * [Example](#example-eg-div2k)
-5. [Contributing](#contributing) 
-6. [Credit](#credit)
+
+- [SRCNN-PyTorch](#srcnn-pytorch)
+    - [Overview](#overview)
+    - [Table of contents](#table-of-contents)
+    - [About Image Super-Resolution Using Deep Convolutional Networks](#about-image-super-resolution-using-deep-convolutional-networks)
+    - [Installation](#installation)
+      - [Clone and install requirements](#clone-and-install-requirements)
+      - [Download pretrained weights](#download-pretrained-weights)
+      - [Download dataset](#download-dataset)
+    - [Test](#test)
+    - [Train (e.g DIV2K)](#train-eg-div2k)
+      - [Example (e.g DIV2K)](#example-eg-div2k)
+    - [Contributing](#contributing)
+    - [Credit](#credit)
+      - [Image Super-Resolution Using Deep Convolutional Networks](#image-super-resolution-using-deep-convolutional-networks)
 
 ### About Image Super-Resolution Using Deep Convolutional Networks
 
@@ -51,7 +57,7 @@ bash download_dataset.sh
 Evaluate the overall performance of the network.
 ```bash
 usage: test.py [-h] [--dataroot DATAROOT] [--weights WEIGHTS] [--cuda]
-               [--scale-factor {2,3,4}] [--manualSeed MANUALSEED]
+               [--scale-factor {2,3,4}]
 
 PyTorch Super Resolution CNN.
 
@@ -59,22 +65,19 @@ optional arguments:
   -h, --help            show this help message and exit
   --dataroot DATAROOT   The directory address where the image needs to be
                         processed. (default: `./data/Set5`).
-  --weights WEIGHTS     Generator model name. (default:`weights/srcnn_X4.pth`)
+  --weights WEIGHTS     Generator model name. (default:`weights/srcnn_4x.pth`)
   --cuda                Enables cuda
   --scale-factor {2,3,4}
                         Image scaling ratio. (default: `4`).
-  --manualSeed MANUALSEED
-                        Seed for initializing training. (default:none)
 
 # Example
-python test.py --dataroot ./data/Set5 --weights ./weights/srcnn_X4.pth --scale-factor 4 --cuda
+python test.py --dataroot ./data/Set5 --weights ./weights/srcnn_4x.pth --scale-factor 4 --cuda
 ```
 
 Evaluate the benchmark of validation data set in the network
 ```bash
-usage: test_benchmark.py [-h] [--dataroot DATAROOT] [-j N] [-b N]
-                         [--scale-factor SCALE_FACTOR] [--cuda] --weights
-                         WEIGHTS [--manualSeed MANUALSEED]
+usage: test_benchmark.py [-h] [--dataroot DATAROOT] [-j N]
+                         [--scale-factor {2,3,4}] [--cuda] --weights WEIGHTS
 
 PyTorch Super Resolution CNN.
 
@@ -82,23 +85,18 @@ optional arguments:
   -h, --help            show this help message and exit
   --dataroot DATAROOT   Path to datasets. (default:`./data/DIV2K`)
   -j N, --workers N     Number of data loading workers. (default:0)
-  -b N, --batch-size N  mini-batch size (default: 8), this is the total batch
-                        size of all GPUs on the current node when using Data
-                        Parallel or Distributed Data Parallel.
-  --scale-factor SCALE_FACTOR
+  --scale-factor {2,3,4}
                         Low to high resolution scaling factor. (default:4).
   --cuda                Enables cuda
   --weights WEIGHTS     Path to weights.
-  --manualSeed MANUALSEED
-                        Seed for initializing training. (default:none)
 # Example
-python test_benchmark.py --dataroot ./data/DIV2K --weights ./weights/srcnn_X4.pth --scale-factor 4 --cuda
+python test_benchmark.py --dataroot ./data/DIV2K --weights ./weights/srcnn_4x.pth --scale-factor 4 --cuda
 ```
 
 Test single picture
 ```bash
 usage: test_image.py [-h] [--file FILE] [--weights WEIGHTS] [--cuda]
-                     [--scale-factor SCALE_FACTOR] [--manualSeed MANUALSEED]
+                     [--scale-factor {2,3,4}]
 
 PyTorch Super Resolution CNN.
 
@@ -106,22 +104,20 @@ optional arguments:
   -h, --help            show this help message and exit
   --file FILE           Test low resolution image name.
                         (default:`./assets/baby.png`)
-  --weights WEIGHTS     Generator model name. (default:`weights/srcnn_X4.pth`)
+  --weights WEIGHTS     Generator model name. (default:`weights/srcnn_4x.pth`)
   --cuda                Enables cuda
-  --scale-factor SCALE_FACTOR
-                        Super resolution upscale factor
-  --manualSeed MANUALSEED
-                        Seed for initializing training. (default:none)
+  --scale-factor {2,3,4}
+                        Super resolution upscale factor. (default:4)
 
 # Example
-python test_image.py --file ./assets/baby.png --weights ./weights/srcnn_X4.pth --scale-factor 4 --cuda
+python test_image.py --file ./assets/baby.png --weights ./weights/srcnn_4x.pth --scale-factor 4 --cuda
 ```
 
 ### Train (e.g DIV2K)
 
 ```bash
 usage: train.py [-h] [--dataroot DATAROOT] [-j N] [--epochs N] [-b N]
-                [--lr LR] [--scale-factor SCALE_FACTOR] [-p N] [--cuda]
+                [--lr LR] [--scale-factor {2,3,4}] [-p N] [--cuda]
                 [--weights WEIGHTS] [--manualSeed MANUALSEED]
 
 PyTorch Super Resolution CNN.
@@ -131,17 +127,17 @@ optional arguments:
   --dataroot DATAROOT   Path to datasets. (default:`./data/DIV2K`)
   -j N, --workers N     Number of data loading workers. (default:0)
   --epochs N            Number of total epochs to run. (default:200)
-  -b N, --batch-size N  mini-batch size (default: 64), this is the total batch
+  -b N, --batch-size N  mini-batch size (default: 16), this is the total batch
                         size of all GPUs on the current node when using Data
                         Parallel or Distributed Data Parallel.
   --lr LR               Learning rate. (default:0.0001)
-  --scale-factor SCALE_FACTOR
+  --scale-factor {2,3,4}
                         Low to high resolution scaling factor. (default:4).
   -p N, --print-freq N  Print frequency. (default:5)
   --cuda                Enables cuda
   --weights WEIGHTS     Path to weights (to continue training).
   --manualSeed MANUALSEED
-                        Seed for initializing training. (default:none)
+                        Seed for initializing training. (default:0)
 ```
 
 #### Example (e.g DIV2K)
@@ -153,7 +149,7 @@ python train.py --dataroot ./data/DIV2K --scale-factor 4 --cuda
 If you want to load weights that you've trained before, run the following command.
 
 ```bash
-python train.py --dataroot ./data/DIV2K --scale-factor 4 --weights ./weights/srcnn_epoch_100.pth --cuda
+python train.py --dataroot ./data/DIV2K --scale-factor 4 --weights ./weights/srcnn_4x_epoch_100.pth --cuda
 ```
 
 ### Contributing
