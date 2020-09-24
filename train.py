@@ -25,14 +25,17 @@ from torch.cuda import amp
 
 from srcnn_pytorch import DatasetFromFolder
 from srcnn_pytorch import SRCNN
+from srcnn_pytorch import progress_bar
 
 parser = argparse.ArgumentParser(description="PyTorch Super Resolution CNN.")
 parser.add_argument("--dataroot", type=str, default="./data/DIV2K",
                     help="Path to datasets. (default:`./data/DIV2K`)")
 parser.add_argument("-j", "--workers", default=0, type=int, metavar="N",
                     help="Number of data loading workers. (default:0)")
-parser.add_argument("--epochs", default=2000, type=int, metavar="N",
+parser.add_argument("--epochs", default=200, type=int, metavar="N",
                     help="Number of total epochs to run. (default:200)")
+parser.add_argument("--image-size", type=int, default=256,
+                    help="Size of the data crop (squared assumed). (default:256)")
 parser.add_argument("-b", "--batch-size", default=16, type=int,
                     metavar="N",
                     help="mini-batch size (default: 16), this is the total "
@@ -67,21 +70,24 @@ torch.manual_seed(args.manualSeed)
 cudnn.benchmark = True
 
 if torch.cuda.is_available() and not args.cuda:
-    print("WARNING: You have a CUDA device, "
-          "so you should probably run with --cuda")
+    print("WARNING: You have a CUDA device, so you should probably run with --cuda")
 
 train_dataset = DatasetFromFolder(f"{args.dataroot}/train",
+                                  image_size=args.image_size,
                                   scale_factor=args.scale_factor)
 val_dataset = DatasetFromFolder(f"{args.dataroot}/val",
+                                image_size=args.image_size,
                                 scale_factor=args.scale_factor)
 
 train_dataloader = torch.utils.data.DataLoader(train_dataset,
                                                batch_size=args.batch_size,
-                                               shuffle=True, pin_memory=True,
+                                               shuffle=True,
+                                               pin_memory=True,
                                                num_workers=int(args.workers))
 val_dataloader = torch.utils.data.DataLoader(val_dataset,
                                              batch_size=args.batch_size,
-                                             shuffle=False, pin_memory=True,
+                                             shuffle=False,
+                                             pin_memory=True,
                                              num_workers=int(args.workers))
 
 device = torch.device("cuda:0" if args.cuda else "cpu")
@@ -92,14 +98,10 @@ if args.weights:
     model.load_state_dict(torch.load(args.weights, map_location=device))
 
 criterion = nn.MSELoss().to(device)
-optimizer = optim.Adam(
-    # we use Adam instead of SGD like in the paper, because it's faster
-    [
-        {"params": model.conv1.parameters(), "lr": args.lr},
-        {"params": model.conv2.parameters(), "lr": args.lr},
-        {"params": model.conv3.parameters(), "lr": args.lr},
-    ], lr=args.lr * 0.1,
-)
+# we use Adam instead of SGD like in the paper, because it's faster
+optimizer = optim.Adam([{"params": model.conv1.parameters(), "lr": args.lr},
+                        {"params": model.conv2.parameters(), "lr": args.lr},
+                        {"params": model.conv3.parameters(), "lr": args.lr}, ], lr=args.lr * 0.1, )
 
 best_psnr = 0.
 
@@ -107,12 +109,12 @@ best_psnr = 0.
 scaler = amp.GradScaler()
 
 for epoch in range(args.epochs):
-
-    # Train
-    epoch_loss = 0
-    for iteration, batch in enumerate(train_dataloader):
-        inputs, target = batch[0].to(device), batch[1].to(device)
+    model.train()
+    train_loss = 0.
+    for iteration, (inputs, target) in enumerate(train_dataloader):
         optimizer.zero_grad()
+
+        inputs, target = inputs.to(device), target.to(device)
 
         # Runs the forward pass with autocasting.
         with amp.autocast():
@@ -136,20 +138,22 @@ for epoch in range(args.epochs):
         # Updates the scale for next iteration.
         scaler.update()
 
-        epoch_loss += loss.item()
-        print(f"Step: {len(train_dataloader) * epoch + iteration + 1} Loss: {loss.item():.6f}")
+        train_loss += loss.item()
 
-    print(f"Epoch [{epoch + 1}/[{args.epochs}]. Training avg loss: {epoch_loss / len(train_dataloader):.6f}")
+        progress_bar(iteration, len(train_dataloader), f"Loss: {train_loss / (iteration + 1):.6f}")
+
+    print(f"Epoch [{epoch + 1}/[{args.epochs}]. Training average loss: {train_loss / len(train_dataloader):.6f}")
 
     # Test
-    avg_psnr = 0
+    model.eval()
+    avg_psnr = 0.
     with torch.no_grad():
-        for batch in val_dataloader:
-            inputs, target = batch[0].to(device), batch[1].to(device)
+        for iteration, (inputs, target) in enumerate(val_dataloader):
+            inputs, target = inputs.to(device), target.to(device)
 
-            out = model(inputs)
-            loss = criterion(out, target)
-            psnr = 10 * math.log10(1 / loss.item())
+            prediction = model(inputs)
+            mse = criterion(prediction, target)
+            psnr = 10 * math.log10(1 / mse.item())
             avg_psnr += psnr
     print(f"Average PSNR: {avg_psnr / len(val_dataloader):.2f} dB.")
 
