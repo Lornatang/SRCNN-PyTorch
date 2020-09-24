@@ -18,6 +18,8 @@ from .calculate_psnr import cal_psnr
 from .calculate_ssim import cal_ssim
 from .dataset import DatasetFromFolder
 from .model import SRCNN
+from .utils import format_time
+from .utils import progress_bar
 
 __all__ = [
     "cal_mse",
@@ -27,4 +29,6 @@ __all__ = [
     "cal_ssim",
     "DatasetFromFolder",
     "SRCNN",
+    "format_time",
+    "progress_bar",
 ]
