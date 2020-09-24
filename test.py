@@ -81,6 +81,8 @@ target = f"{args.dataroot}/X{args.scale_factor}/target"
 scale_factor = args.scale_factor
 
 for filename in os.listdir(dataroot):
+
+    # Open image
     image = Image.open(f"{dataroot}/{filename}").convert("YCbCr")
     image_width = int(image.size[0] * scale_factor)
     image_height = int(image.size[1] * scale_factor)
@@ -99,7 +101,9 @@ for filename in os.listdir(dataroot):
     out_image_y = out_image_y.clip(0, 255)
     out_image_y = Image.fromarray(np.uint8(out_image_y[0]), mode="L")
 
-    out_img = Image.merge("YCbCr", [out_image_y, cb, cr]).convert("RGB")
+    out_img_cb = cb.resize(out_image_y.size, Image.BICUBIC)
+    out_img_cr = cr.resize(out_image_y.size, Image.BICUBIC)
+    out_img = Image.merge("YCbCr", [out_image_y, out_img_cb, out_img_cr]).convert("RGB")
     # before converting the result in RGB
     out_img.save(f"result/{filename}")
 
