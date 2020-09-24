@@ -140,7 +140,7 @@ for epoch in range(args.epochs):
 
         train_loss += loss.item()
 
-        progress_bar(epoch, args.epochs, iteration, len(train_dataloader), f"Loss: {train_loss / (iteration + 1):.6f}")
+        progress_bar(epoch, args.epochs, iteration, len(train_dataloader), f"Loss: {loss.item():.6f}")
 
     print(f"Training average loss: {train_loss / len(train_dataloader):.6f}")
 
