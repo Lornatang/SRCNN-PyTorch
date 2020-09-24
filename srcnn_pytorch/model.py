@@ -18,19 +18,22 @@ from torch.cuda import amp
 class SRCNN(nn.Module):
     def __init__(self, num_channels=1):
         super(SRCNN, self).__init__()
-        self.conv1 = nn.Conv2d(num_channels, 64, kernel_size=9, padding=9 // 2)
-        self.conv2 = nn.Conv2d(64, 32, kernel_size=5, padding=5 // 2)
-        self.conv3 = nn.Conv2d(32, num_channels, kernel_size=5, padding=5 // 2)
-        self.relu = nn.ReLU(inplace=True)
+        self.main = nn.Sequential(
+            nn.Conv2d(num_channels, 64, kernel_size=9, padding=9 // 2),
+            nn.ReLU(inplace=True),
+
+            nn.Conv2d(64, 32, kernel_size=5, padding=5 // 2),
+            nn.ReLU(inplace=True),
+
+            nn.Conv2d(32, num_channels, kernel_size=5, padding=5 // 2)
+        )
 
     @amp.autocast()
-    def forward(self, x):
-        x = self.relu(self.conv1(x))
-        x = self.relu(self.conv2(x))
-        x = self.conv3(x)
-        return x
+    def forward(self, inputs):
+        out = self.main(inputs)
+        return out
 
-    def weight_init(self, mean=0.0, std=0.02):
+    def weight_init(self, mean=0.0, std=0.2):
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 m.weight.data.normal_(mean, std)
