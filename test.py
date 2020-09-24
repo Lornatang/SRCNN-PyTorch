@@ -36,9 +36,9 @@ parser = argparse.ArgumentParser(description="PyTorch Super Resolution CNN.")
 parser.add_argument("--dataroot", type=str, default="./data/Set5",
                     help="The directory address where the image needs "
                          "to be processed. (default: `./data/Set5`).")
-parser.add_argument("--weights", type=str, default="weights/srcnn_X4.pth",
+parser.add_argument("--weights", type=str, default="weights/srcnn_4x.pth",
                     help="Generator model name.  "
-                         "(default:`weights/srcnn_X4.pth`)")
+                         "(default:`weights/srcnn_4x.pth`)")
 parser.add_argument("--cuda", action="store_true", help="Enables cuda")
 parser.add_argument("--scale-factor", type=int, default=4, choices=[2, 3, 4],
                     help="Image scaling ratio. (default: `4`).")
