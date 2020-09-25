@@ -30,8 +30,8 @@ from srcnn_pytorch import progress_bar
 parser = argparse.ArgumentParser(description="PyTorch Super Resolution CNN.")
 parser.add_argument("--dataroot", type=str, default="./data/DIV2K",
                     help="Path to datasets. (default:`./data/DIV2K`)")
-parser.add_argument("-j", "--workers", default=0, type=int, metavar="N",
-                    help="Number of data loading workers. (default:0)")
+parser.add_argument("-j", "--workers", default=4, type=int, metavar="N",
+                    help="Number of data loading workers. (default:4)")
 parser.add_argument("--epochs", default=200, type=int, metavar="N",
                     help="Number of total epochs to run. (default:200)")
 parser.add_argument("--image-size", type=int, default=256,
@@ -41,8 +41,8 @@ parser.add_argument("-b", "--batch-size", default=16, type=int,
                     help="mini-batch size (default: 16), this is the total "
                          "batch size of all GPUs on the current node when "
                          "using Data Parallel or Distributed Data Parallel.")
-parser.add_argument("--lr", type=float, default=0.01,
-                    help="Learning rate. (default:0.01)")
+parser.add_argument("--lr", type=float, default=0.0001,
+                    help="Learning rate. (default:0.0001)")
 parser.add_argument("--scale-factor", type=int, default=4, choices=[2, 3, 4],
                     help="Low to high resolution scaling factor. (default:4).")
 parser.add_argument("-p", "--print-freq", default=5, type=int,
@@ -101,7 +101,6 @@ if args.weights:
 criterion = nn.MSELoss().to(device)
 # we use Adam instead of SGD like in the paper, because it's faster
 optimizer = optim.Adam(model.parameters(), lr=args.lr)
-scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[50, 75, 100], gamma=0.5)  # lr decay
 
 best_psnr = 0.
 
@@ -156,9 +155,6 @@ for epoch in range(args.epochs):
             psnr = 10 * math.log10(1 / mse.item())
             avg_psnr += psnr
     print(f"Average PSNR: {avg_psnr / len(val_dataloader):.2f} dB.")
-
-    # Dynamic adjustment of learning rate.
-    scheduler.step()
 
     # Save model
     if (epoch + 1) % 20 == 0:
