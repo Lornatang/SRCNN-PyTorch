@@ -128,8 +128,7 @@ dmypy.json
 
 .DS_Store
 
-data/train
-data/val
+data/DIV2K/
 
 outputs
 results
