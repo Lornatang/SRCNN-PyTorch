@@ -130,7 +130,10 @@ dmypy.json
 
 data/DIV2K
 
-outputs
-results
+output
+result
+
 weights/*.pth
 weights/*.zip
+*.mp4
+*.zip
