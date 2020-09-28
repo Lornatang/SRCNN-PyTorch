@@ -11,22 +11,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-from .calculate_mse import cal_mse
-from .calculate_mse import cal_rmse
 from .calculate_niqe import cal_niqe
-from .calculate_psnr import cal_psnr
-from .calculate_ssim import cal_ssim
 from .dataset import DatasetFromFolder
 from .model import SRCNN
 from .utils import format_time
 from .utils import progress_bar
 
 __all__ = [
-    "cal_mse",
-    "cal_rmse",
     "cal_niqe",
-    "cal_psnr",
-    "cal_ssim",
     "DatasetFromFolder",
     "SRCNN",
     "format_time",

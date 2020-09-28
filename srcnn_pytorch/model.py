@@ -16,30 +16,32 @@ from torch.cuda import amp
 
 
 class SRCNN(nn.Module):
-    def __init__(self, num_channels=1):
+    def __init__(self):
         super(SRCNN, self).__init__()
-        self.main = nn.Sequential(
-            nn.Conv2d(num_channels, 64, kernel_size=9, padding=9 // 2),
-            nn.ReLU(inplace=True),
 
-            nn.Conv2d(64, 32, kernel_size=5, padding=5 // 2),
-            nn.ReLU(inplace=True),
+        # Patch extraction and representation.
+        self.features = nn.Sequential(
+            nn.Conv2d(1, 64, kernel_size=7, padding=3),
+            nn.ReLU(inplace=True)
+        )
 
-            nn.Conv2d(32, num_channels, kernel_size=5, padding=5 // 2)
+        # Non-linear mapping.
+        self.map = nn.Sequential(
+            nn.Conv2d(64, 32, kernel_size=9, padding=4),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(32, 32, kernel_size=9, padding=4),
+            nn.ReLU(inplace=True)
+        )
+
+        # Reconstruction image.
+        self.reconstruction = nn.Sequential(
+            nn.Conv2d(32, 1, kernel_size=7, padding=3),
+            nn.ReLU(inplace=True)
         )
 
     @amp.autocast()
     def forward(self, inputs):
-        out = self.main(inputs)
+        out = self.features(inputs)
+        out = self.map(out)
+        out = self.reconstruction(out)
         return out
-
-    def weight_init(self, mean=0.0, std=0.2):
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                m.weight.data.normal_(mean, std)
-                if m.bias is not None:
-                    m.bias.data.zero_()
-            if isinstance(m, nn.ConvTranspose2d):
-                m.weight.data.normal_(0.0, 0.0001)
-                if m.bias is not None:
-                    m.bias.data.zero_()

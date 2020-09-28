@@ -4,3 +4,4 @@ pillow
 sewar
 scipy
 opencv-python
+torch
