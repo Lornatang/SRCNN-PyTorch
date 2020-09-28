@@ -51,8 +51,7 @@ class DatasetFromFolder(Dataset):
         crop_size = image_size - (image_size % scale_factor)  # Valid crop size
         self.input_transform = transforms.Compose(
             [transforms.CenterCrop(crop_size),  # cropping the image
-             transforms.ToTensor(),
-             transforms.Normalize((0.5,), (0.5,))])
+             transforms.ToTensor()])
         self.target_transform = transforms.Compose(
             [transforms.CenterCrop(crop_size),
              # since it's the target, we keep its original quality
