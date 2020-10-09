@@ -11,12 +11,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+import math
+
 from torch import nn
 from torch.cuda import amp
 
 
 class SRCNN(nn.Module):
-    def __init__(self):
+    def __init__(self, init_weights=True):
         super(SRCNN, self).__init__()
 
         # Patch extraction and representation.
@@ -34,10 +36,26 @@ class SRCNN(nn.Module):
         )
 
         # Reconstruction image.
-        self.reconstruction = nn.Sequential(
-            nn.Conv2d(32, 1, kernel_size=7, padding=3),
-            nn.ReLU(inplace=True)
-        )
+        self.reconstruction = nn.Conv2d(32, 1, kernel_size=7, padding=3)
+
+        if init_weights:
+            self._initialize_weights()
+
+    # The filter weights of each layer are initialized by drawing randomly from
+    # a Gaussian distribution with a zero mean and a standard deviation of 0.001 (and a deviation of 0).
+    def _initialize_weights(self):
+        for m in self.features:
+            if isinstance(m, nn.Conv2d):
+                nn.init.normal_(m.weight.data, mean=0.0,
+                                std=math.sqrt(2 / (m.out_channels * m.weight.data[0][0].numel())))
+                nn.init.zeros_(m.bias.data)
+        for m in self.map:
+            if isinstance(m, nn.Conv2d):
+                nn.init.normal_(m.weight.data, mean=0.0,
+                                std=math.sqrt(2 / (m.out_channels * m.weight.data[0][0].numel())))
+                nn.init.zeros_(m.bias.data)
+        nn.init.normal_(self.reconstruction.weight.data, mean=0.0, std=0.001)
+        nn.init.zeros_(self.reconstruction.bias.data)
 
     @amp.autocast()
     def forward(self, inputs):

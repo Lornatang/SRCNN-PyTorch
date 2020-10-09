@@ -12,7 +12,7 @@
 # limitations under the License.
 # ==============================================================================
 from .calculate_niqe import cal_niqe
-from .dataset import DatasetFromFolder
+from .datasets import DatasetFromFolder
 from .model import SRCNN
 from .utils import format_time
 from .utils import progress_bar

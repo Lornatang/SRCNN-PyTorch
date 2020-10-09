@@ -137,3 +137,6 @@ weights/*.pth
 weights/*.zip
 *.mp4
 *.zip
+
+create_dataset.py
+split_image.py
