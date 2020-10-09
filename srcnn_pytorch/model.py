@@ -23,20 +23,18 @@ class SRCNN(nn.Module):
 
         # Patch extraction and representation.
         self.features = nn.Sequential(
-            nn.Conv2d(1, 64, kernel_size=7, padding=3),
+            nn.Conv2d(1, 64, kernel_size=9, padding=9 // 2),
             nn.ReLU(inplace=True)
         )
 
         # Non-linear mapping.
         self.map = nn.Sequential(
-            nn.Conv2d(64, 32, kernel_size=9, padding=4),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(32, 32, kernel_size=9, padding=4),
+            nn.Conv2d(64, 32, kernel_size=5, padding=5 // 2),
             nn.ReLU(inplace=True)
         )
 
         # Reconstruction image.
-        self.reconstruction = nn.Conv2d(32, 1, kernel_size=7, padding=3)
+        self.reconstruction = nn.Conv2d(32, 1, kernel_size=5, padding=5 // 2)
 
         if init_weights:
             self._initialize_weights()

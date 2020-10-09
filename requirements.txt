@@ -5,3 +5,4 @@ sewar
 scipy
 opencv-python
 torch
+tensorboardX

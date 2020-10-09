@@ -50,13 +50,12 @@ class DatasetFromFolder(Dataset):
         self.target_filenames = [os.path.join(target_dir, x) for x in os.listdir(target_dir) if check_image_file(x)]
 
         # Normalize a tensor image with mean and standard deviation [-1, 1]
-        self.transform = transforms.Compose([
+        self.data_transform = transforms.Compose([
             transforms.ToTensor(),
         ])
-        # Traditional bicubic interpolation magnified the image to facilitate comparison.
-        self.bic_scale = transforms.Compose([
-            transforms.Resize((image_size * upscale_factor, image_size * upscale_factor), interpolation=Image.BICUBIC),
-            transforms.ToTensor()
+        self.target_transform = transforms.Compose([
+            transforms.Resize((image_size // upscale_factor, image_size // upscale_factor), interpolation=Image.BICUBIC),
+            transforms.ToTensor(),
         ])
 
     def __getitem__(self, index):
@@ -70,15 +69,15 @@ class DatasetFromFolder(Dataset):
 
         """
         inputs = Image.open(self.data_filenames[index]).convert("YCbCr")
-        inputs, _, _ = inputs.split()
         target = Image.open(self.target_filenames[index]).convert("YCbCr")
+
+        inputs, _, _ = inputs.split()
         target, _, _ = target.split()
 
-        inputs = self.transform(inputs)
-        target = self.transform(target)
-        restore = self.bic_scale(inputs)
+        inputs = self.data_transform(inputs)
+        target = self.target_transform(target)
 
-        return inputs, target, restore
+        return inputs, target
 
     def __len__(self):
         """

@@ -22,20 +22,24 @@ import torch.optim as optim
 import torch.utils.data
 import torch.utils.data.distributed
 from torch.cuda import amp
+from tensorboardX import SummaryWriter
 
 from srcnn_pytorch import DatasetFromFolder
 from srcnn_pytorch import SRCNN
 from srcnn_pytorch import progress_bar
 
-parser = argparse.ArgumentParser(description="PyTorch Super Resolution CNN.")
-parser.add_argument("--dataroot", type=str, default="./data/DIV2K",
-                    help="Path to datasets. (default:`./data/DIV2K`)")
+parser = argparse.ArgumentParser(description="Image Super-Resolution Using Deep Convolutional Networks.")
+parser.add_argument("--dataroot", type=str, default="./data",
+                    help="Path to datasets. (default:`./data`)")
 parser.add_argument("-j", "--workers", default=4, type=int, metavar="N",
                     help="Number of data loading workers. (default:4)")
-parser.add_argument("--epochs", default=20, type=int, metavar="N",
-                    help="Number of total epochs to run. (default:20)")
-parser.add_argument("--image-size", type=int, default=32,
-                    help="Size of the data crop (squared assumed). (default:32)")
+parser.add_argument("--iters", default=1e8, type=int, metavar="N",
+                    help="Number of total epochs to run. According to the 1e8 iterations in the original paper."
+                         "(default:1e8)")
+parser.add_argument("--image-size", type=int, default=256,
+                    help="Size of the data crop (squared assumed). (default:256)")
+parser.add_argument("--upscale-factor", type=int, default=2, choices=[2, 4],
+                    help="Low to high resolution scaling factor. (default:2).")
 parser.add_argument("-b", "--batch-size", default=16, type=int,
                     metavar="N",
                     help="mini-batch size (default: 16), this is the total "
@@ -43,10 +47,6 @@ parser.add_argument("-b", "--batch-size", default=16, type=int,
                          "using Data Parallel or Distributed Data Parallel.")
 parser.add_argument("--lr", type=float, default=0.0001,
                     help="Learning rate. (default:0.0001)")
-parser.add_argument("--scale-factor", type=int, default=4, choices=[2, 3, 4],
-                    help="Low to high resolution scaling factor. (default:4).")
-parser.add_argument("-p", "--print-freq", default=5, type=int,
-                    metavar="N", help="Print frequency. (default:5)")
 parser.add_argument("--cuda", action="store_true", help="Enables cuda")
 parser.add_argument("--weights", default="",
                     help="Path to weights (to continue training).")
@@ -72,12 +72,14 @@ cudnn.benchmark = True
 if torch.cuda.is_available() and not args.cuda:
     print("WARNING: You have a CUDA device, so you should probably run with --cuda")
 
-train_dataset = DatasetFromFolder(f"{args.dataroot}/train",
+train_dataset = DatasetFromFolder(data_dir=f"{args.dataroot}/{args.upscale_factor}x/train/data",
+                                  target_dir=f"{args.dataroot}/{args.upscale_factor}x/train/target",
                                   image_size=args.image_size,
-                                  scale_factor=args.scale_factor)
-val_dataset = DatasetFromFolder(f"{args.dataroot}/val",
+                                  upscale_factor=args.upscale_factor)
+val_dataset = DatasetFromFolder(data_dir=f"{args.dataroot}/{args.upscale_factor}x/val/data",
+                                target_dir=f"{args.dataroot}/{args.upscale_factor}x/val/target",
                                 image_size=args.image_size,
-                                scale_factor=args.scale_factor)
+                                upscale_factor=args.upscale_factor)
 
 train_dataloader = torch.utils.data.DataLoader(train_dataset,
                                                batch_size=args.batch_size,
@@ -99,14 +101,22 @@ if args.weights:
 
 criterion = nn.MSELoss().to(device)
 # we use Adam instead of SGD like in the paper, because it's faster
-optimizer = optim.Adam(model.parameters(), lr=args.lr)
+optimizer = optim.Adam([
+    {"params": model.features.parameters()},
+    {"params": model.map.parameters()},
+    {"params": model.reconstruction.parameters(), "lr": args.lr * 0.1}
+], lr=args.lr)
 
 best_psnr = 0.
+epochs = int(args.iters // len(train_dataloader))
 
 # Creates a GradScaler once at the beginning of training.
 scaler = amp.GradScaler()
+# Start write training log
+writer = SummaryWriter("logs")
+print("Run `tensorboard --logdir=./logs` view training curve.")
 
-for epoch in range(args.epochs):
+for epoch in range(epochs):
     model.train()
     train_loss = 0.
     for iteration, (inputs, target) in enumerate(train_dataloader):
@@ -137,8 +147,8 @@ for epoch in range(args.epochs):
         scaler.update()
 
         train_loss += loss.item()
-
-        progress_bar(epoch, args.epochs, iteration, len(train_dataloader), f"Loss: {loss.item():.6f}")
+        writer.add_scalar("Train_loss", loss.item(), iteration + iteration * epoch)
+        progress_bar(epoch, epochs, iteration, len(train_dataloader), f"Loss: {loss.item():.6f}")
 
     print(f"Training average loss: {train_loss / len(train_dataloader):.6f}")
 
@@ -151,13 +161,13 @@ for epoch in range(args.epochs):
 
             prediction = model(inputs)
             mse = criterion(prediction, target)
-            psnr = 10 * math.log10(1 / mse.item())
+            psnr = 10 * math.log10(1. / mse.item())
             avg_psnr += psnr
+
+            writer.add_scalar("Test_PSNR", psnr, iteration + iteration * epoch)
     print(f"Average PSNR: {avg_psnr / len(val_dataloader):.2f} dB.")
 
     # Save model
-    if (epoch + 1) % 20 == 0:
-        torch.save(model.state_dict(), f"weights/srcnn_{args.scale_factor}x_epoch_{epoch + 1}.pth")
     if avg_psnr > best_psnr:
         best_psnr = avg_psnr
-        torch.save(model.state_dict(), f"weights/srcnn_{args.scale_factor}x.pth")
+        torch.save(model.state_dict(), f"weights/srcnn_{args.upscale_factor}x.pth")
