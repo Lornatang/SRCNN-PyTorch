@@ -52,10 +52,13 @@ class DatasetFromFolder(Dataset):
         # Normalize a tensor image with mean and standard deviation [-1, 1]
         self.data_transform = transforms.Compose([
             transforms.ToTensor(),
+            transforms.Normalize(mean=[0.5, ], std=[0.5, ])
         ])
         self.target_transform = transforms.Compose([
-            transforms.Resize((image_size // upscale_factor, image_size // upscale_factor), interpolation=Image.BICUBIC),
+            transforms.Resize((image_size // upscale_factor, image_size // upscale_factor),
+                              interpolation=Image.BICUBIC),
             transforms.ToTensor(),
+            transforms.Normalize(mean=[0.5, ], std=[0.5, ])
         ])
 
     def __getitem__(self, index):
