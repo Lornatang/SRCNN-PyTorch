@@ -82,9 +82,6 @@ scale_factor = args.scale_factor
 for filename in os.listdir(dataroot):
     # Open image
     image = Image.open(f"{dataroot}/{filename}").convert("YCbCr")
-    image_width = int(image.size[0] * scale_factor)
-    image_height = int(image.size[1] * scale_factor)
-    image = image.resize((image_width, image_height), Image.BICUBIC)
     y, cb, cr = image.split()
 
     preprocess = transforms.ToTensor()

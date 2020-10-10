@@ -24,10 +24,12 @@ from srcnn_pytorch import SRCNN
 from srcnn_pytorch import progress_bar
 
 parser = argparse.ArgumentParser(description="PyTorch Super Resolution CNN.")
-parser.add_argument("--dataroot", type=str, default="./data/DIV2K",
-                    help="Path to datasets. (default:`./data/DIV2K`)")
-parser.add_argument("--image-size", type=int, default=32,
-                    help="Size of the data crop (squared assumed). (default:32)")
+parser.add_argument("--dataroot", type=str, default="./data/91-images",
+                    help="Path to datasets. (default:`./data/91-images`)")
+parser.add_argument("--src-size", type=int, default=33,
+                    help="Size of the data image (squared assumed). (default:33)")
+parser.add_argument("--dst-size", type=int, default=21,
+                    help="Size of the data image (squared assumed). (default:21)")
 parser.add_argument("-j", "--workers", default=0, type=int, metavar="N",
                     help="Number of data loading workers. (default:0)")
 parser.add_argument("--scale-factor", type=int, required=True, choices=[2, 3, 4],
@@ -44,9 +46,11 @@ cudnn.benchmark = True
 if torch.cuda.is_available() and not args.cuda:
     print("WARNING: You have a CUDA device, so you should probably run with --cuda")
 
-dataset = DatasetFromFolder(f"{args.dataroot}/val",
-                            image_size=args.image_size,
-                            scale_factor=args.scale_factor)
+dataset = DatasetFromFolder(data_dir=f"{args.dataroot}/val/data",
+                            target_dir=f"{args.dataroot}/val/target",
+                            src_size=args.src_size,
+                            dst_size=args.dst_size,
+                            upscale_factor=args.upscale_factor)
 
 dataloader = torch.utils.data.DataLoader(dataset,
                                          batch_size=1,
