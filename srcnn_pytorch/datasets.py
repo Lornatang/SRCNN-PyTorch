@@ -35,14 +35,15 @@ def check_image_file(filename):
 
 
 class DatasetFromFolder(Dataset):
-    def __init__(self, data_dir, target_dir, image_size, upscale_factor):
+    def __init__(self, data_dir, target_dir, src_size=33, dst_size=21, upscale_factor=4):
         r""" Dataset loading base class.
 
         Args:
             data_dir (str): The directory address where the data image is stored.
             target_dir (str): The directory address where the target image is stored.
-            image_size (int): Size of low resolution image.
-            upscale_factor (int): How many times is the image upscale.
+            src_size (int): Size of low resolution image. (Default: 33).
+            dst_size (int): Size of high resolution image. (Default: 21).
+            upscale_factor (int): How many times is the image upscale. (Default: 2).
         """
         super(DatasetFromFolder, self).__init__()
         # Traverse the image files under the dataset and add their absolute paths to the list.
@@ -51,12 +52,13 @@ class DatasetFromFolder(Dataset):
 
         # Normalize a tensor image with mean and standard deviation [-1, 1]
         self.data_transform = transforms.Compose([
+            transforms.Resize((src_size * upscale_factor, src_size * upscale_factor), interpolation=Image.BICUBIC),
+            transforms.Resize((src_size // upscale_factor, src_size // upscale_factor), interpolation=Image.BICUBIC),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.5, ], std=[0.5, ])
         ])
         self.target_transform = transforms.Compose([
-            transforms.Resize((image_size // upscale_factor, image_size // upscale_factor),
-                              interpolation=Image.BICUBIC),
+            transforms.Resize((dst_size, dst_size), interpolation=Image.BICUBIC),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.5, ], std=[0.5, ])
         ])

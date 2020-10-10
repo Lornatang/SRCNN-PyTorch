@@ -29,17 +29,19 @@ from srcnn_pytorch import SRCNN
 from srcnn_pytorch import progress_bar
 
 parser = argparse.ArgumentParser(description="Image Super-Resolution Using Deep Convolutional Networks.")
-parser.add_argument("--dataroot", type=str, default="./data",
+parser.add_argument("--dataroot", type=str, default="./data/91-images",
                     help="Path to datasets. (default:`./data`)")
 parser.add_argument("-j", "--workers", default=4, type=int, metavar="N",
                     help="Number of data loading workers. (default:4)")
 parser.add_argument("--iters", default=1e8, type=int, metavar="N",
                     help="Number of total epochs to run. According to the 1e8 iterations in the original paper."
                          "(default:1e8)")
-parser.add_argument("--image-size", type=int, default=256,
-                    help="Size of the data crop (squared assumed). (default:256)")
-parser.add_argument("--upscale-factor", type=int, default=2, choices=[2, 4],
-                    help="Low to high resolution scaling factor. (default:2).")
+parser.add_argument("--src-size", type=int, default=33,
+                    help="Size of the data image (squared assumed). (default:33)")
+parser.add_argument("--dst-size", type=int, default=21,
+                    help="Size of the data image (squared assumed). (default:21)")
+parser.add_argument("--upscale-factor", type=int, default=4, choices=[2, 3, 4],
+                    help="Low to high resolution scaling factor. (default:4).")
 parser.add_argument("-b", "--batch-size", default=16, type=int,
                     metavar="N",
                     help="mini-batch size (default: 16), this is the total "
@@ -72,13 +74,15 @@ cudnn.benchmark = True
 if torch.cuda.is_available() and not args.cuda:
     print("WARNING: You have a CUDA device, so you should probably run with --cuda")
 
-train_dataset = DatasetFromFolder(data_dir=f"{args.dataroot}/{args.upscale_factor}x/train/data",
-                                  target_dir=f"{args.dataroot}/{args.upscale_factor}x/train/target",
-                                  image_size=args.image_size,
+train_dataset = DatasetFromFolder(data_dir=f"{args.dataroot}/train/data",
+                                  target_dir=f"{args.dataroot}/train/target",
+                                  src_size=args.src_size,
+                                  dst_size=args.dst_size,
                                   upscale_factor=args.upscale_factor)
-val_dataset = DatasetFromFolder(data_dir=f"{args.dataroot}/{args.upscale_factor}x/val/data",
-                                target_dir=f"{args.dataroot}/{args.upscale_factor}x/val/target",
-                                image_size=args.image_size,
+val_dataset = DatasetFromFolder(data_dir=f"{args.dataroot}/val/data",
+                                target_dir=f"{args.dataroot}/val/target",
+                                src_size=args.src_size,
+                                dst_size=args.dst_size,
                                 upscale_factor=args.upscale_factor)
 
 train_dataloader = torch.utils.data.DataLoader(train_dataset,
@@ -114,7 +118,7 @@ epochs = int(args.iters // len(train_dataloader))
 scaler = amp.GradScaler()
 # Start write training log
 writer = SummaryWriter("logs")
-print("Run `tensorboard --logdir=./logs` view training curve.")
+print("Run `tensorboard --logdir=./logs` view training log.")
 
 for epoch in range(epochs):
     model.train()

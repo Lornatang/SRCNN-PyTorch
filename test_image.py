@@ -50,9 +50,6 @@ model.load_state_dict(torch.load(args.weights, map_location=device))
 
 # Open image
 image = Image.open(args.file).convert("YCbCr")
-image_width = int(image.size[0] * args.scale_factor)
-image_height = int(image.size[1] * args.scale_factor)
-image = image.resize((image_width, image_height), Image.BICUBIC)
 y, cb, cr = image.split()
 
 preprocess = transforms.ToTensor()
