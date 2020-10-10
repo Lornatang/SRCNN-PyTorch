@@ -142,3 +142,4 @@ weights/*.zip
 *.zip
 
 data/*.py
+srcnn_*x.png
