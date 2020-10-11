@@ -12,7 +12,6 @@
 # limitations under the License.
 # ==============================================================================
 from .calculate_niqe import cal_niqe
-from .calculate_ssim import cal_ssim
 from .datasets import DatasetFromFolder
 from .model import SRCNN
 from .utils import img2tensor
@@ -23,7 +22,6 @@ from .utils import tensor2img
 
 __all__ = [
     "cal_niqe",
-    "cal_ssim",
     "DatasetFromFolder",
     "SRCNN",
     "img2tensor",

@@ -26,7 +26,6 @@ from tqdm import tqdm
 
 from srcnn_pytorch import DatasetFromFolder
 from srcnn_pytorch import SRCNN
-from srcnn_pytorch import cal_ssim
 from srcnn_pytorch import init_torch_seeds
 from srcnn_pytorch import load_checkpoint
 from srcnn_pytorch import select_device
@@ -149,12 +148,10 @@ for epoch in range(args.start_epoch, epochs):
         scaler.update()
 
         psnr_value = 10 * math.log10((hr.max() ** 2) / loss)
-        ssim_value = cal_ssim(sr, hr).item()
 
         progress_bar.set_description(f"[{epoch + 1}/{epochs}][{iteration + 1}/{len(dataloader)}] "
                                      f"MSE: {loss.item():.4f} "
-                                     f"PSNR: {psnr_value:.2f}dB "
-                                     f"SSIM: {ssim_value:.4f}")
+                                     f"PSNR: {psnr_value:.2f}dB")
 
         # The model is saved every 20000000 iterations.
         if (len(dataloader) * epoch + iteration + 1) % save_interval == 0:
@@ -165,4 +162,4 @@ for epoch in range(args.start_epoch, epochs):
         writer.add_scalar("Train_loss", loss.item(), iteration + iteration * epoch)
 
     torch.save(model.state_dict(), f"./weights/SRCNN_{args.upscale_factor}x.pth")
-    print(f"[*] Training model done! Saving model weight to `./weights/SRCNN_{args.upscale_factor}x.pth`.")
+print(f"[*] Training model done! Saving model weight to `./weights/SRCNN_{args.upscale_factor}x.pth`.")

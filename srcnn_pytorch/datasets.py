@@ -49,7 +49,12 @@ class DatasetFromFolder(torch.utils.data.dataset.Dataset):
         super(DatasetFromFolder, self).__init__()
         self.input_filenames = [os.path.join(input_dir, x) for x in os.listdir(input_dir) if check_image_file(x)]
         self.target_filenames = [os.path.join(target_dir, x) for x in os.listdir(target_dir) if check_image_file(x)]
-        self.transforms = transforms.Compose([
+        self.input_transforms = transforms.Compose([
+            transforms.Resize((33, 33), interpolation=Image.BICUBIC),
+            img2tensor(),
+            transforms.Normalize(mean=[0.5, ], std=[0.5, ])
+        ])
+        self.target_transforms = transforms.Compose([
             img2tensor(),
             transforms.Normalize(mean=[0.5, ], std=[0.5, ])
         ])
@@ -70,8 +75,8 @@ class DatasetFromFolder(torch.utils.data.dataset.Dataset):
         input, _, _ = input.split()
         target, _, _ = target.split()
 
-        input = self.transforms(input)
-        target = self.transforms(target)
+        input = self.input_transforms(input)
+        target = self.target_transforms(target)
 
         return input, target
 
