@@ -13,53 +13,44 @@
 # ==============================================================================
 import os
 
+import torch.utils.data.dataset
 import torchvision.transforms as transforms
 from PIL import Image
-from torch.utils.data import Dataset
+
+from .utils import img2tensor
 
 
 def check_image_file(filename):
-    r"""Determine whether the files in the directory are in image format.
+    r"""Filter non image files in directory.
 
     Args:
-        filename (str): The current path of the image
+        filename (str): File name under path.
 
     Returns:
-        Returns True if it is an image and False if it is not.
+        Return True if bool(x) is True for any x in the iterable.
 
     """
-    return any(filename.endswith(extension) for extension in [".bmp", ".BMP",
-                                                              ".jpg", ".JPG",
+    return any(filename.endswith(extension) for extension in ["bmp", ".png",
+                                                              ".jpg", ".jpeg",
                                                               ".png", ".PNG",
                                                               ".jpeg", ".JPEG"])
 
 
-class DatasetFromFolder(Dataset):
-    def __init__(self, data_dir, target_dir, src_size=33, dst_size=21, upscale_factor=4):
-        r""" Dataset loading base class.
+class DatasetFromFolder(torch.utils.data.dataset.Dataset):
+    r"""An abstract class representing a :class:`Dataset`."""
+
+    def __init__(self, input_dir, target_dir):
+        r"""
 
         Args:
-            data_dir (str): The directory address where the data image is stored.
+            input_dir (str): The directory address where the data image is stored.
             target_dir (str): The directory address where the target image is stored.
-            src_size (int): Size of low resolution image. (Default: 33).
-            dst_size (int): Size of high resolution image. (Default: 21).
-            upscale_factor (int): How many times is the image upscale. (Default: 2).
         """
         super(DatasetFromFolder, self).__init__()
-        # Traverse the image files under the dataset and add their absolute paths to the list.
-        self.data_filenames = [os.path.join(data_dir, x) for x in os.listdir(data_dir) if check_image_file(x)]
+        self.input_filenames = [os.path.join(input_dir, x) for x in os.listdir(input_dir) if check_image_file(x)]
         self.target_filenames = [os.path.join(target_dir, x) for x in os.listdir(target_dir) if check_image_file(x)]
-
-        # Normalize a tensor image with mean and standard deviation [-1, 1]
-        self.data_transform = transforms.Compose([
-            transforms.Resize((src_size * upscale_factor, src_size * upscale_factor), interpolation=Image.BICUBIC),
-            transforms.Resize((src_size // upscale_factor, src_size // upscale_factor), interpolation=Image.BICUBIC),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.5, ], std=[0.5, ])
-        ])
-        self.target_transform = transforms.Compose([
-            transforms.Resize((dst_size, dst_size), interpolation=Image.BICUBIC),
-            transforms.ToTensor(),
+        self.transforms = transforms.Compose([
+            img2tensor(),
             transforms.Normalize(mean=[0.5, ], std=[0.5, ])
         ])
 
@@ -70,24 +61,19 @@ class DatasetFromFolder(Dataset):
             index (int): Index position in image list.
 
         Returns:
-            Low resolution image, high resolution image and bicubic high resolution image.
-
+            Low resolution image, high resolution image.
         """
-        inputs = Image.open(self.data_filenames[index]).convert("YCbCr")
+
+        input = Image.open(self.input_filenames[index]).convert("YCbCr")
         target = Image.open(self.target_filenames[index]).convert("YCbCr")
 
-        inputs, _, _ = inputs.split()
+        input, _, _ = input.split()
         target, _, _ = target.split()
 
-        inputs = self.data_transform(inputs)
-        target = self.target_transform(target)
+        input = self.transforms(input)
+        target = self.transforms(target)
 
-        return inputs, target
+        return input, target
 
     def __len__(self):
-        """
-
-        Returns:
-            Number of returned dataset files.
-        """
-        return len(self.data_filenames)
+        return len(self.input_filenames)

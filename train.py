@@ -16,23 +16,28 @@ import math
 import os
 import random
 
-import torch.backends.cudnn as cudnn
 import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data
 import torch.utils.data.distributed
-from torch.cuda import amp
 from tensorboardX import SummaryWriter
+from torch.cuda import amp
+from tqdm import tqdm
 
 from srcnn_pytorch import DatasetFromFolder
 from srcnn_pytorch import SRCNN
-from srcnn_pytorch import progress_bar
+from srcnn_pytorch import cal_ssim
+from srcnn_pytorch import init_torch_seeds
+from srcnn_pytorch import load_checkpoint
+from srcnn_pytorch import select_device
 
 parser = argparse.ArgumentParser(description="Image Super-Resolution Using Deep Convolutional Networks.")
-parser.add_argument("--dataroot", type=str, default="./data/91-images",
+parser.add_argument("--dataroot", type=str, default="./data",
                     help="Path to datasets. (default:`./data`)")
 parser.add_argument("-j", "--workers", default=4, type=int, metavar="N",
                     help="Number of data loading workers. (default:4)")
+parser.add_argument("--start-epoch", default=0, type=int, metavar="N",
+                    help="manual epoch number (useful on restarts)")
 parser.add_argument("--iters", default=1e8, type=int, metavar="N",
                     help="Number of total epochs to run. According to the 1e8 iterations in the original paper."
                          "(default:1e8)")
@@ -49,11 +54,12 @@ parser.add_argument("-b", "--batch-size", default=16, type=int,
                          "using Data Parallel or Distributed Data Parallel.")
 parser.add_argument("--lr", type=float, default=0.0001,
                     help="Learning rate. (default:0.0001)")
-parser.add_argument("--cuda", action="store_true", help="Enables cuda")
-parser.add_argument("--weights", default="",
-                    help="Path to weights (to continue training).")
+parser.add_argument("--resume", default="", type=str, metavar="PATH",
+                    help="Path to latest checkpoint for PSNR model. (default: None).")
 parser.add_argument("--manualSeed", type=int, default=0,
                     help="Seed for initializing training. (default:0)")
+parser.add_argument("--device", default="",
+                    help="device id i.e. `0` or `0,1` or `cpu`. (default: ``).")
 
 args = parser.parse_args()
 print(args)
@@ -63,56 +69,46 @@ try:
 except OSError:
     pass
 
+# Set random initialization seed, easy to reproduce.
 if args.manualSeed is None:
     args.manualSeed = random.randint(1, 10000)
 print("Random Seed: ", args.manualSeed)
 random.seed(args.manualSeed)
-torch.manual_seed(args.manualSeed)
+init_torch_seeds(args.manualSeed)
 
-cudnn.benchmark = True
+# Selection of appropriate treatment equipment
+device = select_device(args.device, batch_size=args.batch_size)
 
-if torch.cuda.is_available() and not args.cuda:
-    print("WARNING: You have a CUDA device, so you should probably run with --cuda")
+dataset = DatasetFromFolder(input_dir=f"{args.dataroot}/train/input",
+                            target_dir=f"{args.dataroot}/train/target")
 
-train_dataset = DatasetFromFolder(data_dir=f"{args.dataroot}/train/data",
-                                  target_dir=f"{args.dataroot}/train/target",
-                                  src_size=args.src_size,
-                                  dst_size=args.dst_size,
-                                  upscale_factor=args.upscale_factor)
-val_dataset = DatasetFromFolder(data_dir=f"{args.dataroot}/val/data",
-                                target_dir=f"{args.dataroot}/val/target",
-                                src_size=args.src_size,
-                                dst_size=args.dst_size,
-                                upscale_factor=args.upscale_factor)
-
-train_dataloader = torch.utils.data.DataLoader(train_dataset,
-                                               batch_size=args.batch_size,
-                                               shuffle=True,
-                                               pin_memory=True,
-                                               num_workers=int(args.workers))
-val_dataloader = torch.utils.data.DataLoader(val_dataset,
-                                             batch_size=args.batch_size,
-                                             shuffle=False,
-                                             pin_memory=True,
-                                             num_workers=int(args.workers))
-
-device = torch.device("cuda:0" if args.cuda else "cpu")
-
+dataloader = torch.utils.data.DataLoader(dataset,
+                                         batch_size=args.batch_size,
+                                         shuffle=True,
+                                         pin_memory=True,
+                                         num_workers=int(args.workers))
+# Construct SRCNN model.
 model = SRCNN().to(device)
 
-if args.weights:
-    model.load_state_dict(torch.load(args.weights, map_location=device))
-
-criterion = nn.MSELoss().to(device)
-# we use Adam instead of SGD like in the paper, because it's faster
+# We use Adam instead of SGD like in the paper, because it's faster
 optimizer = optim.Adam([
     {"params": model.features.parameters()},
     {"params": model.map.parameters()},
     {"params": model.reconstruction.parameters(), "lr": args.lr * 0.1}
 ], lr=args.lr)
 
-best_psnr = 0.
-epochs = int(args.iters // len(train_dataloader))
+# Loading PSNR pre training model
+if args.resume:
+    args.start_epoch = load_checkpoint(model, optimizer, args.resume)
+
+# Define loss
+criterion = nn.MSELoss().to(device)
+
+# From the total number of iterations, how many training datasets are needed
+epochs = int(args.iters // len(dataloader))
+save_interval = int(epochs // 5)
+print("[*] Start training model based on MSE loss.")
+print(f"[*] Searching pretrained model weights.")
 
 # Creates a GradScaler once at the beginning of training.
 scaler = amp.GradScaler()
@@ -120,18 +116,20 @@ scaler = amp.GradScaler()
 writer = SummaryWriter("logs")
 print("Run `tensorboard --logdir=./logs` view training log.")
 
-for epoch in range(epochs):
-    model.train()
-    train_loss = 0.
-    for iteration, (inputs, target) in enumerate(train_dataloader):
+for epoch in range(args.start_epoch, epochs):
+    progress_bar = tqdm(enumerate(dataloader), total=len(dataloader))
+    for iteration, (input, target) in progress_bar:
+        # Set model gradients to zero
         optimizer.zero_grad()
 
-        inputs, target = inputs.to(device), target.to(device)
+        lr = input.to(device)
+        hr = target.to(device)
 
         # Runs the forward pass with autocasting.
         with amp.autocast():
-            output = model(inputs)
-            loss = criterion(output, target)
+            # Generating fake high resolution images from real low resolution images.
+            sr = model(lr)
+            loss = criterion(sr, hr)
 
         # Scales loss.  Calls backward() on scaled loss to
         # create scaled gradients.
@@ -150,28 +148,21 @@ for epoch in range(epochs):
         # Updates the scale for next iteration.
         scaler.update()
 
-        train_loss += loss.item()
+        psnr_value = 10 * math.log10((hr.max() ** 2) / loss)
+        ssim_value = cal_ssim(sr, hr).item()
+
+        progress_bar.set_description(f"[{epoch + 1}/{epochs}][{iteration + 1}/{len(dataloader)}] "
+                                     f"MSE: {loss.item():.4f} "
+                                     f"PSNR: {psnr_value:.2f}dB "
+                                     f"SSIM: {ssim_value:.4f}")
+
+        # The model is saved every 20000000 iterations.
+        if (len(dataloader) * epoch + iteration + 1) % save_interval == 0:
+            torch.save({"epoch": epoch + 1,
+                        "optimizer": optimizer.state_dict(),
+                        "state_dict": model.state_dict()}, f"./weights/SRCNN_{args.upscale_factor}x_checkpoint.pth")
+
         writer.add_scalar("Train_loss", loss.item(), iteration + iteration * epoch)
-        progress_bar(epoch, epochs, iteration, len(train_dataloader), f"Loss: {loss.item():.6f}")
 
-    print(f"Training average loss: {train_loss / len(train_dataloader):.6f}")
-
-    # Test
-    model.eval()
-    avg_psnr = 0.
-    with torch.no_grad():
-        for iteration, (inputs, target) in enumerate(val_dataloader):
-            inputs, target = inputs.to(device), target.to(device)
-
-            prediction = model(inputs)
-            mse = criterion(prediction, target)
-            psnr = 10 * math.log10(1. / mse.item())
-            avg_psnr += psnr
-
-            writer.add_scalar("Test_PSNR", psnr, iteration + iteration * epoch)
-    print(f"Average PSNR: {avg_psnr / len(val_dataloader):.2f} dB.")
-
-    # Save model
-    if avg_psnr > best_psnr:
-        best_psnr = avg_psnr
-        torch.save(model.state_dict(), f"weights/srcnn_{args.upscale_factor}x.pth")
+    torch.save(model.state_dict(), f"./weights/SRCNN_{args.upscale_factor}x.pth")
+    print(f"[*] Training model done! Saving model weight to `./weights/SRCNN_{args.upscale_factor}x.pth`.")

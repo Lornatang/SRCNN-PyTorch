@@ -13,6 +13,7 @@
 # ==============================================================================
 import math
 
+from torch import Tensor
 from torch import nn
 from torch.cuda import amp
 
@@ -56,8 +57,8 @@ class SRCNN(nn.Module):
         nn.init.zeros_(self.reconstruction.bias.data)
 
     @amp.autocast()
-    def forward(self, inputs):
-        out = self.features(inputs)
+    def forward(self, input: Tensor) -> Tensor:
+        out = self.features(input)
         out = self.map(out)
         out = self.reconstruction(out)
         return out

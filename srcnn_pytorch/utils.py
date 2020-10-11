@@ -11,102 +11,106 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-import sys
-import time
+import logging
+import os
 
-TOTAL_BAR_LENGTH = 50
-LAST_T = time.time()
-BEGIN_T = LAST_T
+import torch
+import torch.backends.cudnn as cudnn
+import torchvision.transforms as transforms
+
+__all__ = [
+    "img2tensor", "init_torch_seeds", "load_checkpoint", "select_device",
+    "tensor2img",
+]
+
+logger = logging.getLogger(__name__)
 
 
-def progress_bar(current_epoch, total_epoch, current_batch, total_batch, msg=None):
-    """ A progress bar for training.
+def img2tensor():
+    r"""Read array image into tensor format."""
+    return transforms.ToTensor()
+
+
+# Source from "https://github.com/ultralytics/yolov5/blob/master/utils/torch_utils.py"
+def init_torch_seeds(seed: int = 0):
+    r""" Sets the seed for generating random numbers. Returns a
 
     Args:
-        current_epoch (int): Number of current training epoch.
-        total_epoch (int): Total number of training epochs required.
-        current_batch (int): Number of current training batches.
-        total_batch (int): Total number of training batches required.
-        msg (str): Output information.
+        seed (int): The desired seed.
+    """
+    torch.manual_seed(seed)
+
+    # Speed-reproducibility tradeoff https://pytorch.org/docs/stable/notes/randomness.html
+    if seed == 0:  # slower, more reproducible
+        cudnn.deterministic = True
+        cudnn.benchmark = False
+    else:  # faster, less reproducible
+        cudnn.deterministic = False
+        cudnn.benchmark = True
+
+
+def load_checkpoint(model: torch.nn.Module, optimizer: torch.optim.Adam = torch.optim.Adam,
+                    file: str = None) -> int:
+    r""" Quick loading model functions
+
+    Args:
+        model (nn.Module): Neural network model.
+        optimizer (torch.optim): Model optimizer. (Default: torch.optim.Adam)
+        file (str): Model file.
 
     Returns:
-        sys.stdout.write().
-
+        How much epoch to start training from.
     """
-    global LAST_T, BEGIN_T
-    if current_batch == 0:
-        BEGIN_T = time.time()  # Reset for new bar.
-
-    current_len = int(TOTAL_BAR_LENGTH * (current_batch + 1) / total_batch)
-    rest_len = int(TOTAL_BAR_LENGTH - current_len) - 1
-
-    sys.stdout.write(f"[{current_epoch + 1}/{total_epoch}][{current_batch + 1}/{total_batch}]")
-    sys.stdout.write(" [")
-    for i in range(current_len):
-        sys.stdout.write("=")
-    sys.stdout.write(">")
-    for i in range(rest_len):
-        sys.stdout.write(".")
-    sys.stdout.write("]")
-
-    current_time = time.time()
-    step_time = current_time - LAST_T
-    LAST_T = current_time
-    total_time = current_time - BEGIN_T
-
-    time_used = f"  Step time: {step_time:.2f}s"
-    time_used += f" | Total time: {total_time:.2f}s"
-    if msg:
-        time_used += " | " + msg
-
-    msg = time_used
-    sys.stdout.write(msg)
-
-    if current_batch < total_batch - 1:
-        sys.stdout.write("\r")
+    if os.path.isfile(file):
+        logger.info(f"[*] Loading checkpoint `{file}`.")
+        checkpoint = torch.load(file)
+        epoch = checkpoint["epoch"]
+        model.load_state_dict(checkpoint["state_dict"])
+        optimizer.load_state_dict(checkpoint["optimizer"])
+        logger.info(f"[*] Loaded checkpoint `{file}` (epoch {checkpoint['epoch']})")
     else:
-        sys.stdout.write("\n")
-    sys.stdout.flush()
+        logger.info(f"[!] no checkpoint found at '{file}'")
+        epoch = 0
+
+    return epoch
 
 
-# return the formatted time
-def format_time(seconds):
-    """ Format time
+def select_device(device: str = None, batch_size: int = 1) -> torch.device:
+    r""" Choose the right equipment.
 
     Args:
-        seconds (int): Run time in seconds.
+        device (str): Use CPU or CUDA. (Default: None)
+        batch_size (int, optional): Data batch size, cannot be less than the number of devices. (Default: 1).
 
     Returns:
-        Output a unit with run time.
-
+        torch.device.
     """
-    days = int(seconds / 3600 / 24)
-    seconds = seconds - days * 3600 * 24
-    hours = int(seconds / 3600)
-    seconds = seconds - hours * 3600
-    minutes = int(seconds / 60)
-    seconds = seconds - minutes * 60
-    seconds_final = int(seconds)
-    seconds = seconds - seconds_final
-    millis = int(seconds * 1000)
+    # device = "cpu" or "cuda:0,1,2,3"
+    only_cpu = device.lower() == "cpu"
+    if device and not only_cpu:  # if device requested other than "cpu"
+        os.environ["CUDA_VISIBLE_DEVICES"] = device  # set environment variable
+        assert torch.cuda.is_available(), f"CUDA unavailable, invalid device {device} requested"
 
-    output = ""
-    time_index = 1
-    if days > 0:
-        output += str(days) + "D"
-        time_index += 1
-    if hours > 0 and time_index <= 2:
-        output += str(hours) + "h"
-        time_index += 1
-    if minutes > 0 and time_index <= 2:
-        output += str(minutes) + "m"
-        time_index += 1
-    if seconds_final > 0 and time_index <= 2:
-        output += str(seconds_final) + "s"
-        time_index += 1
-    if millis > 0 and time_index <= 2:
-        output += str(millis) + "ms"
-        time_index += 1
-    if output == "":
-        output = "0ms"
-    return output
+    cuda = False if only_cpu else torch.cuda.is_available()
+    if cuda:
+        c = 1024 ** 2  # bytes to MB
+        gpu_count = torch.cuda.device_count()
+        if gpu_count > 1 and batch_size:  # check that batch_size is compatible with device_count
+            assert batch_size % gpu_count == 0, f"batch-size {batch_size} not multiple of GPU count {gpu_count}"
+        x = [torch.cuda.get_device_properties(i) for i in range(gpu_count)]
+        s = "Using CUDA "
+        for i in range(0, gpu_count):
+            if i == 1:
+                s = " " * len(s)
+            logger.info(f"{s}\n\t+ device:{i} (name=`{x[i].name}`, "
+                        f"total_memory={int(x[i].total_memory / c)}MB)")
+    else:
+        logger.info("Using CPU")
+
+    logger.info("")  # skip a line
+    return torch.device("cuda:0" if cuda else "cpu")
+
+
+def tensor2img():
+    r"""Read tensor format  into image array."""
+    return transforms.ToPILImage()
