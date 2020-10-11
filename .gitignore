@@ -130,8 +130,8 @@ dmypy.json
 
 data/DIV2K
 data/91-images
-data/2x
-data/4x
+data/train
+data/val
 
 output
 result
