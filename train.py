@@ -40,10 +40,6 @@ parser.add_argument("--start-epoch", default=0, type=int, metavar="N",
 parser.add_argument("--iters", default=1e8, type=int, metavar="N",
                     help="Number of total epochs to run. According to the 1e8 iterations in the original paper."
                          "(default:1e8)")
-parser.add_argument("--src-size", type=int, default=33,
-                    help="Size of the data image (squared assumed). (default:33)")
-parser.add_argument("--dst-size", type=int, default=21,
-                    help="Size of the data image (squared assumed). (default:21)")
 parser.add_argument("--upscale-factor", type=int, default=4, choices=[2, 3, 4],
                     help="Low to high resolution scaling factor. (default:4).")
 parser.add_argument("-b", "--batch-size", default=16, type=int,
