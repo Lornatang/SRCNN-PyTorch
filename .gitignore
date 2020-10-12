@@ -142,5 +142,4 @@ weights/*.zip
 *.mp4
 *.zip
 
-data/*.py
 srcnn_*x.png

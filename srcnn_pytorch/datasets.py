@@ -50,6 +50,7 @@ class DatasetFromFolder(torch.utils.data.dataset.Dataset):
         self.input_filenames = [os.path.join(input_dir, x) for x in os.listdir(input_dir) if check_image_file(x)]
         self.target_filenames = [os.path.join(target_dir, x) for x in os.listdir(target_dir) if check_image_file(x)]
         self.input_transforms = transforms.Compose([
+            transforms.Resize((21, 21), interpolation=Image.BICUBIC),
             transforms.Resize((33, 33), interpolation=Image.BICUBIC),
             img2tensor(),
             transforms.Normalize(mean=[0.5, ], std=[0.5, ])

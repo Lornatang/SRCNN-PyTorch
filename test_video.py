@@ -13,38 +13,44 @@
 # ==============================================================================
 import argparse
 import os
+import random
 
 import cv2
 import numpy as np
-import torch.backends.cudnn as cudnn
 import torch.utils.data.distributed
 import torchvision.transforms as transforms
 from PIL import Image
 from tqdm import tqdm
 
 from srcnn_pytorch import SRCNN
+from srcnn_pytorch import init_torch_seeds
+from srcnn_pytorch import select_device
 
-parser = argparse.ArgumentParser(description="SRCNN algorithm is applied to video files.")
+parser = argparse.ArgumentParser(description="Image Super-Resolution Using "
+                                             "Deep Convolutional Networks.")
 parser.add_argument("--file", type=str, required=True,
                     help="Test low resolution video name.")
 parser.add_argument("--weights", type=str, required=True,
                     help="Generator model name. ")
-parser.add_argument("--scale-factor", type=int, required=True, choices=[2, 3, 4],
-                    help="Super resolution upscale factor. (default:4)")
 parser.add_argument("--view", action="store_true",
                     help="Super resolution real time to show.")
-parser.add_argument("--cuda", action="store_true",
-                    help="Enables cuda")
+parser.add_argument("--manualSeed", type=int, default=10000,
+                    help="Seed for initializing training. (default:10000)")
+parser.add_argument("--device", default="",
+                    help="device id i.e. `0` or `0,1` or `cpu`. (default: ``).")
 
 args = parser.parse_args()
 print(args)
 
-cudnn.benchmark = True
+# Set random initialization seed, easy to reproduce.
+if args.manualSeed is None:
+    args.manualSeed = random.randint(1, 10000)
+print("Random Seed: ", args.manualSeed)
+random.seed(args.manualSeed)
+init_torch_seeds(args.manualSeed)
 
-if torch.cuda.is_available() and not args.cuda:
-    print("WARNING: You have a CUDA device, so you should probably run with --cuda")
-
-device = torch.device("cuda:0" if args.cuda else "cpu")
+# Selection of appropriate treatment equipment
+device = select_device(args.device, batch_size=args.batch_size)
 
 # create model
 model = SRCNN().to(device)
@@ -71,11 +77,10 @@ size = (int(video_capture.get(cv2.CAP_PROP_FRAME_WIDTH)), int(video_capture.get(
 sr_size = (size[0], size[1])
 pare_size = (sr_size[0] * 2 + 10, sr_size[1] + 10 + sr_size[0] // 5 - 9)
 # Video write loader.
-srgan_writer = cv2.VideoWriter(f"srcnn_{args.scale_factor}x_{os.path.basename(video_name)}",
+srgan_writer = cv2.VideoWriter(f"srcnn_{os.path.basename(video_name)}",
                                cv2.VideoWriter_fourcc(*"MPEG"), fps, sr_size)
-compare_writer = cv2.VideoWriter(f"compare_{args.scale_factor}x_{os.path.basename(video_name)}",
+compare_writer = cv2.VideoWriter(f"compare_{os.path.basename(video_name)}",
                                  cv2.VideoWriter_fourcc(*"MPEG"), fps, pare_size)
-
 
 # read frame
 success, raw_frame = video_capture.read()

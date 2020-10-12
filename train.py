@@ -30,7 +30,8 @@ from srcnn_pytorch import init_torch_seeds
 from srcnn_pytorch import load_checkpoint
 from srcnn_pytorch import select_device
 
-parser = argparse.ArgumentParser(description="Image Super-Resolution Using Deep Convolutional Networks.")
+parser = argparse.ArgumentParser(description="Image Super-Resolution Using "
+                                             "Deep Convolutional Networks.")
 parser.add_argument("--dataroot", type=str, default="./data",
                     help="Path to datasets. (default:`./data`)")
 parser.add_argument("-j", "--workers", default=4, type=int, metavar="N",
@@ -38,10 +39,9 @@ parser.add_argument("-j", "--workers", default=4, type=int, metavar="N",
 parser.add_argument("--start-epoch", default=0, type=int, metavar="N",
                     help="manual epoch number (useful on restarts)")
 parser.add_argument("--iters", default=1e8, type=int, metavar="N",
-                    help="Number of total epochs to run. According to the 1e8 iterations in the original paper."
+                    help="Number of total epochs to run. "
+                         "According to the 1e8 iters in the original paper."
                          "(default:1e8)")
-parser.add_argument("--upscale-factor", type=int, default=4, choices=[2, 3, 4],
-                    help="Low to high resolution scaling factor. (default:4).")
 parser.add_argument("-b", "--batch-size", default=16, type=int,
                     metavar="N",
                     help="mini-batch size (default: 16), this is the total "
@@ -50,7 +50,8 @@ parser.add_argument("-b", "--batch-size", default=16, type=int,
 parser.add_argument("--lr", type=float, default=0.0001,
                     help="Learning rate. (default:0.0001)")
 parser.add_argument("--resume", default="", type=str, metavar="PATH",
-                    help="Path to latest checkpoint for PSNR model. (default: None).")
+                    help="Path to latest checkpoint for PSNR model. "
+                         "(default: None).")
 parser.add_argument("--manualSeed", type=int, default=0,
                     help="Seed for initializing training. (default:0)")
 parser.add_argument("--device", default="",
@@ -122,7 +123,8 @@ for epoch in range(args.start_epoch, epochs):
 
         # Runs the forward pass with autocasting.
         with amp.autocast():
-            # Generating fake high resolution images from real low resolution images.
+            # Generating fake high resolution images from
+            # real low resolution images.
             sr = model(lr)
             loss = criterion(sr, hr)
 
@@ -145,7 +147,8 @@ for epoch in range(args.start_epoch, epochs):
 
         psnr_value = 10 * math.log10((hr.max() ** 2) / loss)
 
-        progress_bar.set_description(f"[{epoch + 1}/{epochs}][{iteration + 1}/{len(dataloader)}] "
+        progress_bar.set_description(f"[{epoch + 1}/{epochs}]"
+                                     f"[{iteration + 1}/{len(dataloader)}] "
                                      f"MSE: {loss.item():.4f} "
                                      f"PSNR: {psnr_value:.2f}dB")
 
@@ -153,9 +156,11 @@ for epoch in range(args.start_epoch, epochs):
         if (len(dataloader) * epoch + iteration + 1) % save_interval == 0:
             torch.save({"epoch": epoch + 1,
                         "optimizer": optimizer.state_dict(),
-                        "state_dict": model.state_dict()}, f"./weights/SRCNN_{args.upscale_factor}x_checkpoint.pth")
+                        "state_dict": model.state_dict()
+                        }, f"./weights/SRCNN_checkpoint.pth")
 
-        writer.add_scalar("Train_loss", loss.item(), iteration + iteration * epoch)
+        writer.add_scalar("Train_loss", loss.item(),
+                          iteration + iteration * epoch)
 
-    torch.save(model.state_dict(), f"./weights/SRCNN_{args.upscale_factor}x.pth")
-print(f"[*] Training model done! Saving model weight to `./weights/SRCNN_{args.upscale_factor}x.pth`.")
+torch.save(model.state_dict(), f"./weights/SRCNN.pth")
+print(f"[*] Training model done! Saving model weight to `./weights/SRCNN.pth`.")

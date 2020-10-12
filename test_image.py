@@ -14,33 +14,26 @@
 import argparse
 
 import numpy as np
-import torch.backends.cudnn as cudnn
 import torch.utils.data.distributed
 import torchvision.transforms as transforms
 from PIL import Image
 
 from srcnn_pytorch import SRCNN
+from srcnn_pytorch import select_device
 
-parser = argparse.ArgumentParser(description="PyTorch Super Resolution CNN.")
+parser = argparse.ArgumentParser(description="Image Super-Resolution Using "
+                                             "Deep Convolutional Networks.")
 parser.add_argument("--file", type=str, default="./assets/baby.png",
                     help="Test low resolution image name. "
                          "(default:`./assets/baby.png`)")
-parser.add_argument("--weights", type=str, default="weights/srcnn_4x.pth",
-                    help="Generator model name.  "
-                         "(default:`weights/srcnn_4x.pth`)")
-parser.add_argument("--cuda", action="store_true", help="Enables cuda")
-parser.add_argument("--scale-factor", default=4, type=int, choices=[2, 4],
-                    help="Super resolution upscale factor. (default:4)")
+parser.add_argument("--weights", type=str, default="./weights/SRCNN.pth",
+                    help="Generator model name. (default:`./weights/SRCNN.pth`)")
 
 args = parser.parse_args()
 print(args)
 
-cudnn.benchmark = True
-
-if torch.cuda.is_available() and not args.cuda:
-    print("WARNING: You have a CUDA device, so you should probably run with --cuda")
-
-device = torch.device("cuda:0" if args.cuda else "cpu")
+# Selection of appropriate treatment equipment
+device = select_device(args.device, batch_size=1)
 
 # create model
 model = SRCNN().to(device)
@@ -57,7 +50,8 @@ inputs = preprocess(y).view(1, -1, y.size[1], y.size[0])
 
 inputs = inputs.to(device)
 
-out = model(inputs)
+with torch.no_grad():
+    out = model(inputs)
 out = out.cpu()
 out_image_y = out[0].detach().numpy()
 out_image_y *= 255.0
@@ -68,4 +62,4 @@ out_img_cb = cb.resize(out_image_y.size, Image.BICUBIC)
 out_img_cr = cr.resize(out_image_y.size, Image.BICUBIC)
 out_img = Image.merge("YCbCr", [out_image_y, out_img_cb, out_img_cr]).convert("RGB")
 # before converting the result in RGB
-out_img.save(f"srcnn_{args.scale_factor}x.png")
+out_img.save(f"srcnn.png")

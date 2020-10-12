@@ -13,68 +13,70 @@
 # ==============================================================================
 import argparse
 import math
+import os
 
-import torch.backends.cudnn as cudnn
-import torch.nn as nn
 import torch.utils.data
 import torch.utils.data.distributed
+from tqdm import tqdm
 
 from srcnn_pytorch import DatasetFromFolder
 from srcnn_pytorch import SRCNN
-from srcnn_pytorch import progress_bar
+from srcnn_pytorch import select_device
 
-parser = argparse.ArgumentParser(description="PyTorch Super Resolution CNN.")
-parser.add_argument("--dataroot", type=str, default="./data/91-images",
-                    help="Path to datasets. (default:`./data/91-images`)")
-parser.add_argument("--src-size", type=int, default=33,
-                    help="Size of the data image (squared assumed). (default:33)")
-parser.add_argument("--dst-size", type=int, default=21,
-                    help="Size of the data image (squared assumed). (default:21)")
-parser.add_argument("-j", "--workers", default=0, type=int, metavar="N",
-                    help="Number of data loading workers. (default:0)")
-parser.add_argument("--scale-factor", type=int, required=True, choices=[2, 3, 4],
-                    help="Low to high resolution scaling factor.")
-parser.add_argument("--cuda", action="store_true", help="Enables cuda")
-parser.add_argument("--weights", type=str, required=True,
-                    help="Path to weights.")
+parser = argparse.ArgumentParser(description="Image Super-Resolution Using "
+                                             "Deep Convolutional Networks.")
+parser.add_argument("--dataroot", type=str, default="./data",
+                    help="Path to datasets. (default:`./data`)")
+parser.add_argument("-j", "--workers", default=4, type=int, metavar="N",
+                    help="Number of data loading workers. (default:4)")
+parser.add_argument("--weights", default="./weights/SRCNN.pth", type=str, metavar="PATH",
+                    help="Path to latest checkpoint for model. (default: ``./weights/SRCNN.pth``).")
+parser.add_argument("--device", default="",
+                    help="device id i.e. `0` or `0,1` or `cpu`. (default: ``).")
 
 args = parser.parse_args()
 print(args)
 
-cudnn.benchmark = True
+try:
+    os.makedirs("weights")
+except OSError:
+    pass
 
-if torch.cuda.is_available() and not args.cuda:
-    print("WARNING: You have a CUDA device, so you should probably run with --cuda")
+# Selection of appropriate treatment equipment
+device = select_device(args.device, batch_size=1)
 
-dataset = DatasetFromFolder(data_dir=f"{args.dataroot}/val/data",
-                            target_dir=f"{args.dataroot}/val/target",
-                            src_size=args.src_size,
-                            dst_size=args.dst_size,
-                            upscale_factor=args.upscale_factor)
+dataset = DatasetFromFolder(input_dir=f"{args.dataroot}/val/input",
+                            target_dir=f"{args.dataroot}/val/target")
 
 dataloader = torch.utils.data.DataLoader(dataset,
                                          batch_size=1,
-                                         shuffle=False,
                                          pin_memory=True,
                                          num_workers=int(args.workers))
-
-device = torch.device("cuda:0" if args.cuda else "cpu")
-
+# Construct SRCNN model.
 model = SRCNN().to(device)
+
+# Load state dicts
 model.load_state_dict(torch.load(args.weights, map_location=device))
-criterion = nn.MSELoss().to(device)
 
-# Test
+# Set model eval mode
 model.eval()
+
 avg_psnr = 0.
+
+progress_bar = tqdm(enumerate(dataloader), total=len(dataloader))
 with torch.no_grad():
-    for iteration, (inputs, target) in enumerate(dataloader):
-        inputs, target = inputs.to(device), target.to(device)
+    for iteration, (input, target) in progress_bar:
+        # Set model gradients to zero
+        lr = input.to(device)
+        hr = target.to(device)
 
-        prediction = model(inputs)
-        mse = criterion(prediction, target)
-        psnr = 10 * math.log10(1 / mse.item())
-        avg_psnr += psnr
-        progress_bar(0, 1, iteration, len(dataloader), f"PSNR: {psnr:.2f} dB")
+        sr = model(lr)
 
-print(f"Average PSNR: {avg_psnr / len(dataloader):.2f} dB.")
+        mse = ((sr - hr) ** 2).data.mean()
+        psnr_value = 10 * math.log10((hr.max() ** 2) / mse)
+        avg_psnr += psnr_value
+
+        progress_bar.set_description(f"[{iteration + 1}/{len(dataloader)}] "
+                                     f"PSNR: {psnr_value:.2f}dB")
+
+print(f"AVg PSNR: {avg_psnr / len(dataloader):.2f}dB.")
