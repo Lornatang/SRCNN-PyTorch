@@ -43,23 +43,34 @@ model.load_state_dict(torch.load(args.weights, map_location=device))
 
 # Open image
 image = Image.open(args.file).convert("YCbCr")
-y, cb, cr = image.split()
+image = np.array(image).astype(np.float32)、
 
-preprocess = transforms.ToTensor()
-inputs = preprocess(y).view(1, -1, y.size[1], y.size[0])
+# RGB convert to YCbCr
+y = 16. + (64.738 * image[:, :, 0] + 129.057 * image[:, :, 1] + 25.064 * image[:, :, 2]) / 256.
+cb = 128. + (-37.945 * image[:, :, 0] - 74.494 * image[:, :, 1] + 112.439 * image[:, :, 2]) / 256.
+cr = 128. + (112.439 * image[:, :, 0] - 94.154 * image[:, :, 1] - 18.285 * image[:, :, 2]) / 256.
+ycbcr = np.array([y, cb, cr]).transpose([1, 2, 0])
 
-inputs = inputs.to(device)
+inputs = ycbcr[..., 0]
+inputs /= 255.
+inputs = torch.from_numpy(inputs).to(device)
+inputs = inputs.unsqueeze(0).unsqueeze(0)
 
 with torch.no_grad():
-    out = model(inputs)
-out = out.cpu()
-out_image_y = out[0].detach().numpy()
-out_image_y *= 255.0
-out_image_y = out_image_y.clip(0, 255)
-out_image_y = Image.fromarray(np.uint8(out_image_y[0]), mode="L")
+    out = model(inputs).clamp(0.0, 1.0)
 
-out_img_cb = cb.resize(out_image_y.size, Image.BICUBIC)
-out_img_cr = cr.resize(out_image_y.size, Image.BICUBIC)
-out_img = Image.merge("YCbCr", [out_image_y, out_img_cb, out_img_cr]).convert("RGB")
-# before converting the result in RGB
+out_image = out.mul(255.0).cpu().numpy().squeeze(0).squeeze(0)
+
+out_image = np.array([out_image, ycbcr[..., 1], ycbcr[..., 2]]).transpose([1, 2, 0])
+
+# YCbCr convert to RGB
+if len(out_image.shape) == 4:
+    out_image = out_image.squeeze(0)
+y = 16. + (64.738 * out_image[0, :, :] + 129.057 * out_image[1, :, :] + 25.064 * out_image[2, :, :]) / 256.
+cb = 128. + (-37.945 * out_image[0, :, :] - 74.494 * out_image[1, :, :] + 112.439 * out_image[2, :, :]) / 256.
+cr = 128. + (112.439 * out_image[0, :, :] - 94.154 * out_image[1, :, :] - 18.285 * out_image[2, :, :]) / 256.
+out_image = torch.cat([y, cb, cr], 0).permute(1, 2, 0)
+
+out_image = np.clip(out_image, 0.0, 255.0).astype(np.uint8)
+out_image = Image.fromarray(out_image)
 out_img.save(f"srcnn.png")
