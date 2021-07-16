@@ -1,4 +1,4 @@
-# Copyright 2020 Dakewe Biotech Corporation. All Rights Reserved.
+# Copyright 2021 Dakewe Biotech Corporation. All Rights Reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
@@ -12,155 +12,127 @@
 # limitations under the License.
 # ==============================================================================
 import argparse
-import math
 import os
 import random
 
+import torch
+import torch.backends.cudnn as cudnn
+import torch.cuda.amp as amp
 import torch.nn as nn
 import torch.optim as optim
-import torch.utils.data
-import torch.utils.data.distributed
-from tensorboardX import SummaryWriter
-from torch.cuda import amp
-from tqdm import tqdm
+import torch.utils.data as data
+from torch.utils.tensorboard import SummaryWriter
 
-from srcnn_pytorch import DatasetFromFolder
-from srcnn_pytorch import SRCNN
-from srcnn_pytorch import init_torch_seeds
-from srcnn_pytorch import load_checkpoint
-from srcnn_pytorch import select_device
+import models
+from dataset import CustomDataset
 
-parser = argparse.ArgumentParser(description="Image Super-Resolution Using "
-                                             "Deep Convolutional Networks.")
-parser.add_argument("--dataroot", type=str, default="./data",
-                    help="Path to datasets. (default:`./data`)")
-parser.add_argument("-j", "--workers", default=4, type=int, metavar="N",
-                    help="Number of data loading workers. (default:4)")
-parser.add_argument("--start-epoch", default=0, type=int, metavar="N",
-                    help="manual epoch number (useful on restarts)")
-parser.add_argument("--iters", default=1e8, type=int, metavar="N",
+model_names = sorted(name for name in models.__dict__
+    if name.islower() and not name.startswith("__")
+    and callable(models.__dict__[name]))
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--dataroot", type=str, default="./data/T91",
+                    help="Path to datasets. (Default: `./data/T91`)")
+parser.add_argument("--epochs", default=4096, type=int, metavar="N",
                     help="Number of total epochs to run. "
                          "According to the 1e8 iters in the original paper."
-                         "(default:1e8)")
-parser.add_argument("-b", "--batch-size", default=16, type=int,
-                    metavar="N",
-                    help="mini-batch size (default: 16), this is the total "
-                         "batch size of all GPUs on the current node when "
-                         "using Data Parallel or Distributed Data Parallel.")
+                         "(Default: 4096)")
+parser.add_argument("--batch-size", type=int, default=128, 
+                    help="mini-batch size (Default: 128)")
 parser.add_argument("--lr", type=float, default=0.0001,
-                    help="Learning rate. (default:0.0001)")
-parser.add_argument("--resume", default="", type=str, metavar="PATH",
-                    help="Path to latest checkpoint for PSNR model. "
-                         "(default: None).")
-parser.add_argument("--manualSeed", type=int, default=0,
-                    help="Seed for initializing training. (default:0)")
-parser.add_argument("--device", default="",
-                    help="device id i.e. `0` or `0,1` or `cpu`. (default: ``).")
-
+                    help="Learning rate. (Default: 0.0001)")
+parser.add_argument("--arch", metavar="ARCH", default="srcnn_x4",
+                    choices=model_names,
+                    help="model architecture: " +
+                        "srcnn_x2 | srcnn_x3 | srcnn_x4"
+                        " (Default: `srcnn_x4`)")
+parser.add_argument("--scale", type=int, default=4, choices=[2, 3, 4],
+                    help="Low to high resolution scaling factor.")
+parser.add_argument("--pretrained", dest="pretrained", action="store_true",
+                    help="Use pre-trained model.")
+parser.add_argument("--model-path", type=str, default="",
+                    help="Path to weights.")
+parser.add_argument("--seed", type=int, default=666,
+                    help="Seed for initializing training. (Default: 666)")
 args = parser.parse_args()
-print(args)
-
-try:
-    os.makedirs("weights")
-except OSError:
-    pass
 
 # Set random initialization seed, easy to reproduce.
-if args.manualSeed is None:
-    args.manualSeed = random.randint(1, 10000)
-print("Random Seed: ", args.manualSeed)
-random.seed(args.manualSeed)
-init_torch_seeds(args.manualSeed)
+if args.seed is None:
+    args.seed = random.randint(1, 10000)
+print("Random Seed: ", args.seed)
+random.seed(args.seed)
+torch.manual_seed(args.seed)
+cudnn.deterministic = True
 
-# Selection of appropriate treatment equipment
-device = select_device(args.device, batch_size=args.batch_size)
+# Set the operating device model.
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-dataset = DatasetFromFolder(input_dir=f"{args.dataroot}/train/input",
-                            target_dir=f"{args.dataroot}/train/target")
+dataset = CustomDataset(args.dataroot)
+dataloader = data.DataLoader(dataset, args.batch_size, True, pin_memory=True)
 
-dataloader = torch.utils.data.DataLoader(dataset,
-                                         batch_size=args.batch_size,
-                                         shuffle=True,
-                                         pin_memory=True,
-                                         num_workers=int(args.workers))
 # Construct SRCNN model.
-model = SRCNN().to(device)
+if args.pretrained:
+    print(f"=> Using pre-trained model '{args.arch}'")
+    model = models.__dict__[args.arch](pretrained=True)
+else:
+    print(f"=> Creating model '{args.arch}'")
+    model = models.__dict__[args.arch]()
 
-# We use Adam instead of SGD like in the paper, because it's faster
-optimizer = optim.Adam([
-    {"params": model.features.parameters()},
-    {"params": model.map.parameters()},
-    {"params": model.reconstruction.parameters(), "lr": args.lr * 0.1}
-], lr=args.lr)
+# Load the last training weights.
+# How many iterations to continue training from. The default starts from 0.
+start_epoch = 0
+if args.model_path != "":
+    model.load_state_dict(torch.load(args.model_path, torch.device("cpu")))
+    start_epoch = "".join(list(filter(str.isdigit, args.model_path)))
+    print(f"You loaded {args.model_path} for model. "
+          f"Resume epoch from {start_epoch}.")
 
-# Loading PSNR pre training model
-if args.resume:
-    args.start_epoch = load_checkpoint(model, optimizer, args.resume)
-
-# Define loss
+# Define the loss function.
 criterion = nn.MSELoss().to(device)
-
-# From the total number of iterations, how many training datasets are needed
-epochs = int(args.iters // len(dataloader))
-save_interval = int(epochs // 5)
-print("[*] Start training model based on MSE loss.")
-print(f"[*] Searching pretrained model weights.")
-
-# Creates a GradScaler once at the beginning of training.
+# Define the optimizer.
+optimizer = optim.SGD(params=[
+    {"params": model.features.parameters()}, 
+    {"params": model.map.parameters()}, 
+    {"params": model.reconstruction.parameters(),
+     "lr": args.lr * 0.1}], lr=args.lr)
+# Define a mixed precision trainer.
 scaler = amp.GradScaler()
-# Start write training log
-writer = SummaryWriter("logs")
-print("Run `tensorboard --logdir=./logs` view training log.")
 
-for epoch in range(args.start_epoch, epochs):
-    progress_bar = tqdm(enumerate(dataloader), total=len(dataloader))
-    for iteration, (input, target) in progress_bar:
-        # Set model gradients to zero
-        optimizer.zero_grad()
+# Use Tensorboard to record the Loss curve during training.
+writer = SummaryWriter("sample/logs")
 
-        lr = input.to(device)
-        hr = target.to(device)
 
-        # Runs the forward pass with autocasting.
-        with amp.autocast():
-            # Generating fake high resolution images from
-            # real low resolution images.
-            sr = model(lr)
-            loss = criterion(sr, hr)
+def main():
+    num_batches = len(dataloader)
+    for epoch in range(int(start_epoch), args.epochs):
+        for index, data in enumerate(dataloader, 1):
+            # Copy the data to the designated device.
+            inputs, target = data[0].to(device), data[1].to(device)
 
-        # Scales loss.  Calls backward() on scaled loss to
-        # create scaled gradients.
-        # Backward passes under autocast are not recommended.
-        # Backward ops run in the same dtype autocast chose
-        # for corresponding forward ops.
-        scaler.scale(loss).backward()
+            ##############################################
+            # Turn on mixed precision training.
+            ##############################################
+            optimizer.zero_grad()
 
-        # scaler.step() first unscales the gradients of
-        # the optimizer's assigned params.
-        # If these gradients do not contain infs or NaNs,
-        # optimizer.step() is then called,
-        # otherwise, optimizer.step() is skipped.
-        scaler.step(optimizer)
+            with amp.autocast():
+                output = model(inputs)
+                loss = criterion(output, target)
 
-        # Updates the scale for next iteration.
-        scaler.update()
+            scaler.scale(loss).backward()
+            scaler.step(optim)
+            scaler.update()
 
-        psnr_value = 10 * math.log10((hr.max() ** 2) / loss)
+            print(f"Epoch[{epoch}/{args.epochs}]"
+                  f"({index}/{num_batches}) Loss: {loss.item():.4f}.")
 
-        progress_bar.set_description(f"[{epoch + 1}/{epochs}]"
-                                     f"[{iteration + 1}/{len(dataloader)}] "
-                                     f"MSE: {loss.item():.4f} "
-                                     f"PSNR: {psnr_value:.2f}dB")
+            # Write the loss value during training into Tensorboard.
+            batches = index + epoch * num_batches + 1
+            writer.add_scalar("Train/Loss", loss.item(), batches)
+        torch.save(model.state_dict(), os.path.join("sample", f"{args.arch}_epoch{epoch}.pth"))
 
-        # The model is saved every 20000000 iterations.
-        if (len(dataloader) * epoch + iteration + 1) % save_interval == 0:
-            torch.save({"epoch": epoch + 1,
-                        "optimizer": optimizer.state_dict(),
-                        "state_dict": model.state_dict()
-                        }, f"./weights/SRCNN_checkpoint.pth")
+    # Save the model weights of the last iteration.
+    torch.save(model.state_dict(), os.path.join("result", f"{args.arch}-last.pth"))
 
-        writer.add_scalar("Train_loss", loss.item(),
-                          iteration + iteration * epoch)
 
-torch.save(model.state_dict(), f"./weights/SRCNN.pth")
-print(f"[*] Training model done! Saving model weight to `./weights/SRCNN.pth`.")
+if __name__ == "__main__":
+    main()
