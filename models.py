@@ -25,9 +25,9 @@ __all__ = [
 
 
 model_urls = {
-    "srcnn_x2": "https://github.com/Lornatang/SRCNN-PyTorch/releases/download/v2.0/srcnn_x2.pth",
-    "srcnn_x3": "https://github.com/Lornatang/SRCNN-PyTorch/releases/download/v2.0/srcnn_x3.pth",
-    "srcnn_x4": "https://github.com/Lornatang/SRCNN-PyTorch/releases/download/v2.0/srcnn_x4.pth"
+    "srcnn_x2": "https://github.com/Lornatang/SRCNN-PyTorch/releases/download/v2.0/SRCNN_X2_T91-3a03dd76b7d9f3837f1bf336ea87a523af9dc9f0ca9592a7ea382c19364eced8.pth",
+    "srcnn_x3": "https://github.com/Lornatang/SRCNN-PyTorch/releases/download/v2.0/SRCNN_X3_T91-3a03dd76b7d9f3837f1bf336ea87a523af9dc9f0ca9592a7ea382c19364eced8.pth",
+    "srcnn_x4": "https://github.com/Lornatang/SRCNN-PyTorch/releases/download/v2.0/SRCNN_X4_T91-3a03dd76b7d9f3837f1bf336ea87a523af9dc9f0ca9592a7ea382c19364eced8.pth"
 }
 
 
