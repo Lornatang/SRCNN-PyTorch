@@ -31,8 +31,8 @@ model_names = sorted(name for name in models.__dict__
     and callable(models.__dict__[name]))
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--dataroot", type=str, default="./data/T91",
-                    help="Path to datasets. (Default: `./data/T91`)")
+parser.add_argument("--dataroot", type=str, default="./data/T91/LRbicx4",
+                    help="Path to datasets. (Default: `./data/T91/LRbicx4`)")
 parser.add_argument("--epochs", default=4096, type=int, metavar="N",
                     help="Number of total epochs to run. "
                          "According to the 1e8 iters in the original paper."
