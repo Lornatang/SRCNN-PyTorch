@@ -47,8 +47,8 @@ pip install -r requirements.txt
 
 The downloaded data set is placed in the `data` directory.
 
-- [baiduclouddisk](https://pan.baidu.com/s/1d_H5cy5lxt9RnnUT2uv3AA) access: `llot`
-- [googleclouddisk](https://drive.google.com/file/d/1PBZoeEfRddh3L4UbAG2TD0OFVx86ShqN/view?usp=sharing)
+- [baiduclouddisk](https://pan.baidu.com/s/13fHKvBS6CKWbor9VjdrdKg) access: `llot`
+- [googleclouddisk](https://drive.google.com/file/d/1qCxnfiqIEIMy6K5jy0wZm8K8294lDmOU/view?usp=sharing)
 
 ##### Test datasets
 
