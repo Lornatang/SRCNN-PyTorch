@@ -30,7 +30,7 @@ IMAGE_SIZE = 256
 BATCH_SIZE = 128
 
 # Set the operating device model.
-device = torch.device("cpu" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 def main():
