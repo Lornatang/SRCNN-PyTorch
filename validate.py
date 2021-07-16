@@ -40,11 +40,11 @@ parser.add_argument("--arch", metavar="ARCH", default="srcnn_x4",
                     help="model architecture: " +
                         "srcnn_x2 | srcnn_x3 | srcnn_x4"
                         " (Default: `srcnn_x4`)")
-parser.add_argument("--scale", type=int, required=True, choices=[2, 3, 4],
-                    help="Low to high resolution scaling factor.")
+parser.add_argument("--scale", type=int, default=4, choices=[2, 3, 4],
+                    help="Low to high resolution scaling factor. (Default: 4)")
 parser.add_argument("--pretrained", dest="pretrained", action="store_true",
                     help="Use pre-trained model.")
-parser.add_argument("--model-path", type=str, required=True,
+parser.add_argument("--model-path", type=str, default="",
                     help="Path to weights.")
 args = parser.parse_args()
 
