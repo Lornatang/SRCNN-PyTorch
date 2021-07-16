@@ -2,7 +2,7 @@
 
 ### Overview
 
-This repository contains an op-for-op PyTorch reimplementation of [Image Super-Resolution Using Deep Convolutional Networks](https://arxiv.org/abs/1501.00092).
+This repository contains an op-for-op PyTorch reimplementation of [Image Super-Resolution Using Deep Convolutional Networks](https://arxiv.org/abs/1501.00092v3).
 
 ### Table of contents
 
@@ -12,21 +12,22 @@ This repository contains an op-for-op PyTorch reimplementation of [Image Super-R
     - [About Image Super-Resolution Using Deep Convolutional Networks](#about-image-super-resolution-using-deep-convolutional-networks)
     - [Installation](#installation)
       - [Clone and install requirements](#clone-and-install-requirements)
-      - [Download pretrained weights](#download-pretrained-weights)
-      - [Download dataset](#download-dataset)
+      - [Download all datasets](#download-all-datasets)
+        - [Train datasets](#train-datasets)
+        - [Test datasets](#test-datasets)
     - [Test](#test)
-    - [Train (e.g DIV2K)](#train-eg-div2k)
-      - [Example (e.g DIV2K)](#example-eg-div2k)
+    - [Train (e.g T91)](#train-eg-t91)
+    - [Model performance](#model-performance)
+    - [Result](#result)
     - [Contributing](#contributing)
     - [Credit](#credit)
       - [Image Super-Resolution Using Deep Convolutional Networks](#image-super-resolution-using-deep-convolutional-networks)
 
 ### About Image Super-Resolution Using Deep Convolutional Networks
 
-If you're new to SRGAN, here's an abstract straight from the paper:
+If you're new to SRCNN, here's an abstract straight from the paper:
 
 We propose a deep learning method for single image super-resolution (SR). Our method directly learns an end-to-end mapping between the low/high-resolution images. The mapping is represented as a deep convolutional neural network (CNN) that takes the low-resolution image as the input and outputs the high-resolution one. We further show that traditional sparse-coding-based SR methods can also be viewed as a deep convolutional network. But unlike traditional methods that handle each component separately, our method jointly optimizes all layers. Our deep CNN has a lightweight structure, yet demonstrates state-of-the-art restoration quality, and achieves fast speed for practical on-line usage. We explore different network structures and parameter settings to achieve trade-offs between performance and speed. Moreover, we extend our network to cope with three color channels simultaneously, and show better overall reconstruction quality.
-
 
 ### Installation
 
@@ -38,161 +39,122 @@ cd SRCNN-PyTorch/
 pip install -r requirements.txt
 ```
 
-#### Download pretrained weights
+#### Download all datasets
 
-```bash
-cd weights/
-bash download_weights.sh
-```
+##### Train datasets
 
-#### Download dataset
+**T91 dataset**
+The downloaded data set is placed in the `data` directory.
 
-```bash
-cd data/
-bash download_dataset.sh
-```
+- [baiduclouddisk](https://pan.baidu.com/s/1d_H5cy5lxt9RnnUT2uv3AA) access: `llot`
+- [googleclouddisk](https://drive.google.com/file/d/1PBZoeEfRddh3L4UbAG2TD0OFVx86ShqN/view?usp=sharing)
+
+##### Test datasets
+
+**Set5 dataset**
+
+- [baiduclouddisk](https://pan.baidu.com/s/1_B97Ga6thSi5h43Wuqyw0Q) access: `llot`
+- [gooleclouddisk](https://drive.google.com/file/d/10aObmC4_UtTui2luzBNcWjfoGkeSJi2G/view?usp=sharing)
+
+**Set14 dataset**
+
+- [baiduclouddisk](https://pan.baidu.com/s/1wy_kf4Kkj2nSkgRUkaLzVA) access: `llot`
+- [googlecloudisk](https://drive.google.com/file/d/1-3xXHunN_WqTo1c1jVWCJa_0ZG-1LTdv/view?usp=sharing)
+
+**BSD100 dataset**
+
+- [baiduclouddisk](https://pan.baidu.com/s/1Ig8t3_G4Nzhl8MvPAvdzFA) access: `llot`
+- [googlecloudisk](https://drive.google.com/file/d/1EVba9kKtXAbmV6esnfADjH1Ul-uThOeE/view?usp=sharing)
+
 
 ### Test
 
-Evaluate the overall performance of the network.
-```bash
-usage: test.py [-h] [--dataroot DATAROOT] [--weights WEIGHTS] [--cuda]
-               [--scale-factor {2,3,4}]
-
-PyTorch Super Resolution CNN.
+```text
+usage: validate.py [-h] [--lr-dir LR_DIR] [--sr-dir SR_DIR] [--hr-dir HR_DIR] [--arch ARCH] [--scale {2,3,4}]
+                   [--pretrained] [--model-path MODEL_PATH]
 
 optional arguments:
   -h, --help            show this help message and exit
-  --dataroot DATAROOT   The directory address where the image needs to be
-                        processed. (default: `./data/Set5`).
-  --weights WEIGHTS     Generator model name. (default:`weights/srcnn_4x.pth`)
-  --cuda                Enables cuda
-  --scale-factor {2,3,4}
-                        Image scaling ratio. (default: `4`).
+  --lr-dir LR_DIR       Path to lr datasets. (Default: `./data/Set5/LRbicx4`)
+  --sr-dir SR_DIR       Path to sr datasets. (Default: `./sample/Set5`)
+  --hr-dir HR_DIR       Path to hr datasets. (Default: `./data/Set5/GTmod12`)
+  --arch ARCH           model architecture: srcnn_x2 | srcnn_x3 | srcnn_x4 (Default: `srcnn_x4`)
+  --scale {2,3,4}       Low to high resolution scaling factor. (Default: 4)
+  --pretrained          Use pre-trained model.
+  --model-path MODEL_PATH
+                        Path to weights.
 
-# Example
-python test.py --dataroot ./data/Set5 --weights ./weights/srcnn_4x.pth --scale-factor 4 --cuda
+# Example (Set5 dataset)
+python validate.py --pretrained
 ```
 
-Evaluate the benchmark of validation data set in the network
-```bash
-usage: test_benchmark.py [-h] [--dataroot DATAROOT] [--image-size IMAGE_SIZE]
-                         [-j N] [--scale-factor {2,3,4}] [--cuda] --weights
-                         WEIGHTS
+### Train (e.g T91)
 
-PyTorch Super Resolution CNN.
+```text
+usage: train.py [-h] [--dataroot DATAROOT] [--epochs N] [--batch-size BATCH_SIZE] [--lr LR] [--arch ARCH]
+                [--scale {2,3,4}] [--pretrained] [--model-path MODEL_PATH] [--seed SEED]
 
 optional arguments:
   -h, --help            show this help message and exit
-  --dataroot DATAROOT   Path to datasets. (default:`./data/DIV2K`)
-  --image-size IMAGE_SIZE
-                        Size of the data crop (squared assumed). (default:256)
-  -j N, --workers N     Number of data loading workers. (default:0)
-  --scale-factor {2,3,4}
-                        Low to high resolution scaling factor. (default:4).
-  --cuda                Enables cuda
-  --weights WEIGHTS     Path to weights.
+  --dataroot DATAROOT   Path to datasets. (Default: `./data/T91/LRbicx4`)
+  --epochs N            Number of total epochs to run. According to the 1e8 iters in the original paper.(Default:
+                        4096)
+  --batch-size BATCH_SIZE
+                        mini-batch size (Default: 128)
+  --lr LR               Learning rate. (Default: 0.0001)
+  --arch ARCH           model architecture: srcnn_x2 | srcnn_x3 | srcnn_x4 (Default: `srcnn_x4`)
+  --scale {2,3,4}       Low to high resolution scaling factor.
+  --pretrained          Use pre-trained model.
+  --model-path MODEL_PATH
+                        Path to weights.
+  --seed SEED           Seed for initializing training. (Default: 666)
 
 # Example
-python test_benchmark.py --dataroot ./data/DIV2K --weights ./weights/srcnn_4x.pth --scale-factor 4 --cuda
+python train.py
+# If you want to load weights that you've trained before, run the following command.
+python train.py --model-path sample/srcnn_x4_epoch10.pth
 ```
 
-Test single picture
-```bash
-usage: test_image.py [-h] [--file FILE] [--weights WEIGHTS] [--cuda]
-                     [--scale-factor {2,3,4}]
+### Model performance
 
-PyTorch Super Resolution CNN.
+| Model | Params | FLOPs | CPU Speed | GPU Speed |
+| :---: | :----: | :---: | :-------: | :-------: |
+| srcnn | 0.01M  | 1.00G |   26ms    |    1ms    |
 
-optional arguments:
-  -h, --help            show this help message and exit
-  --file FILE           Test low resolution image name.
-                        (default:`./assets/baby.png`)
-  --weights WEIGHTS     Generator model name. (default:`weights/srcnn_4x.pth`)
-  --cuda                Enables cuda
-  --scale-factor {2,3,4}
-                        Super resolution upscale factor. (default:4)
-
-# Example
-python test_image.py --file ./assets/baby.png --weights ./weights/srcnn_4x.pth --scale-factor 4 --cuda
+```text
+# Example (CPU: Intel i9-10900X/GPU: Nvidia GeForce RTX 2080Ti)
+python cal_model_complexity.py
 ```
 
-Test single video
-```bash
-usage: test_video.py [-h] --file FILE --weights WEIGHTS --scale-factor {2,3,4}
-                     [--view] [--cuda]
+### Result
 
-SRCNN algorithm is applied to video files.
+Source of original paper results: https://arxiv.org/pdf/1609.04802v5.pdf
 
-optional arguments:
-  -h, --help            show this help message and exit
-  --file FILE           Test low resolution video name.
-  --weights WEIGHTS     Generator model name.
-  --scale-factor {2,3,4}
-                        Super resolution upscale factor. (default:4)
-  --view                Super resolution real time to show.
-  --cuda                Enables cuda
+In the following table, the value in `()` indicates the result of the project, and `-` indicates no test.
 
-# Example
-python test_video.py --file ./video/1.mp4 --weights ./weights/srcnn_4x.pth --scale-factor 4 --view --cuda
-```
+| Dataset | Scale |   PSNR   |   SSIM   |
+| :-----: | :---: | :------: | :------: |
+|  Set5   |   2   | -(**-**) | -(**-**) |
+|  Set14  |   2   | -(**-**) | -(**-**) |
+|  Set5   |   3   | -(**-**) | -(**-**) |
+|  Set14  |   3   | -(**-**) | -(**-**) |
+|  Set5   |   4   | -(**-**) | -(**-**) |
+|  Set14  |   4   | -(**-**) | -(**-**) |
+
 
 Low resolution / Recovered High Resolution / Ground Truth
-
-<span align="center"><img src="assets/result.png" alt="">
-</span>
-
-### Train (e.g DIV2K)
-
-```bash
-usage: train.py [-h] [--dataroot DATAROOT] [-j N] [--epochs N]
-                [--image-size IMAGE_SIZE] [-b N] [--lr LR]
-                [--scale-factor {2,3,4}] [-p N] [--cuda] [--weights WEIGHTS]
-                [--manualSeed MANUALSEED]
-
-PyTorch Super Resolution CNN.
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --dataroot DATAROOT   Path to datasets. (default:`./data/DIV2K`)
-  -j N, --workers N     Number of data loading workers. (default:0)
-  --epochs N            Number of total epochs to run. (default:200)
-  --image-size IMAGE_SIZE
-                        Size of the data crop (squared assumed). (default:256)
-  -b N, --batch-size N  mini-batch size (default: 16), this is the total batch
-                        size of all GPUs on the current node when using Data
-                        Parallel or Distributed Data Parallel.
-  --lr LR               Learning rate. (default:0.0001)
-  --scale-factor {2,3,4}
-                        Low to high resolution scaling factor. (default:4).
-  -p N, --print-freq N  Print frequency. (default:5)
-  --cuda                Enables cuda
-  --weights WEIGHTS     Path to weights (to continue training).
-  --manualSeed MANUALSEED
-                        Seed for initializing training. (default:0)
-```
-
-#### Example (e.g DIV2K)
-
-```bash
-python train.py --dataroot ./data/DIV2K --scale-factor 4 --cuda
-```
-
-If you want to load weights that you've trained before, run the following command.
-
-```bash
-python train.py --dataroot ./data/DIV2K --scale-factor 4 --weights ./weights/srcnn_4x_epoch_100.pth --cuda
-```
+<span align="center"><img src="assets/result.png" alt=""></span>
 
 ### Contributing
 
-If you find a bug, create a GitHub issue, or even better, submit a pull request. Similarly, if you have questions, simply post them as GitHub issues.   
+If you find a bug, create a GitHub issue, or even better, submit a pull request. Similarly, if you have questions, simply post them as GitHub issues.
 
-I look forward to seeing what the community does with these models! 
+I look forward to seeing what the community does with these models!
 
 ### Credit
 
 #### Image Super-Resolution Using Deep Convolutional Networks
+
 _Chao Dong, Chen Change Loy, Kaiming He, Xiaoou Tang_ <br>
 
 **Abstract** <br>
@@ -210,3 +172,4 @@ We propose a deep learning method for single image super-resolution (SR). Our me
     primaryClass={cs.CV}
 }
 ```
+````
