@@ -1,14 +1,29 @@
-## Usage
-
-Download dataset see `README.md`
-
 ## Training Dataset directory structure
 
 ```text
 - T91
-    - 0000.png
-    - 0001.png
-    - 0002.png
+    - LRbicx4
+        - inputs
+            - t1_001.png
+            - t2_002.png
+            - t3_003.png
+            ...
+        - target
+            - t1_001.png
+            - t2_002.png
+            - t3_003.png
+            ...
+    - LRbicx3
+        - inputs
+            - t1_001.png
+            - t2_002.png
+            - t3_003.png
+            ...
+        - target
+            - t1_001.png
+            - t2_002.png
+            - t3_003.png
+            ...
     - ...
 ```
 
