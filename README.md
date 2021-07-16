@@ -120,7 +120,7 @@ python train.py --model-path sample/srcnn_x4_epoch10.pth
 
 | Model | Params | FLOPs | CPU Speed | GPU Speed |
 | :---: | :----: | :---: | :-------: | :-------: |
-| srcnn | 0.01M  | 1.00G |   26ms    |    1ms    |
+| srcnn | 0.01M  | 1.07G |   17ms    |    1ms    |
 
 ```text
 # Example (CPU: Intel i9-10900X/GPU: Nvidia GeForce RTX 2080Ti)
