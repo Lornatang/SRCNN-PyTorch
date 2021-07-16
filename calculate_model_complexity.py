@@ -35,7 +35,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 def main():
     # Build a super-resolution model, if model path is defined, the specified model weight will be loaded.
-    model = srcnn_x4(pretrained=False).to(device)
+    model = srcnn_x4(pretrained=False, mode="eval").to(device)
     # Switch model to eval mode.
     model.eval()
 
