@@ -87,6 +87,9 @@ if args.model_path != "":
     print(f"You loaded {args.model_path} for model. "
           f"Resume epoch from {start_epoch}.")
 
+# Switch model to specifal device.
+model = model.to(device)
+
 # Define the loss function.
 criterion = nn.MSELoss().to(device)
 # Define the optimizer.
@@ -119,7 +122,7 @@ def main():
                 loss = criterion(output, target)
 
             scaler.scale(loss).backward()
-            scaler.step(optim)
+            scaler.step(optimizer)
             scaler.update()
 
             print(f"Epoch[{epoch}/{args.epochs}]"
