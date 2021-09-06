@@ -1,35 +1,42 @@
-## Training Dataset directory structure
+# Usage
+
+- [Google Driver](https://drive.google.com/drive/folders/1PYizfnKq-UtRCDoSy79PGA4FC5HqAqch?usp=sharing)
+- [Baidu Driver](https://pan.baidu.com/s/1Oa1oas0GOT78DX1IAX7svg) access: `llot`
+
+
+## Train dataset struct information
 
 ```text
 - T91
-    - LRbicx4
-        - inputs
-            - t1_001.png
-            - t2_002.png
-            - t3_003.png
-            ...
-        - target
-            - t1_001.png
-            - t2_002.png
-            - t3_003.png
-            ...
-    - LRbicx3
-        - inputs
-            - t1_001.png
-            - t2_002.png
-            - t3_003.png
-            ...
-        - target
-            - t1_001.png
-            - t2_002.png
-            - t3_003.png
-            ...
+    - X2
+        - train
+            - inputs
+                - ...
+            - target
+                - ...
+        - valid
+            - inputs
+                - ...
+            - target
+                - ...
+    - X4
+        - train
+            - inputs
+                - ...
+            - target
+                - ...
+        - valid
+            - inputs
+                - ...
+            - target
+                - ...
     - ...
 ```
 
-## Testing Dataset directory structure
+## Test dataset struct information
 
 ### Set 5
+
 ```text
 - Set5
     - GTmod12
@@ -43,6 +50,7 @@
 ```
 
 ### Set 14
+
 ```text
 - Set14
     - GTmod12
