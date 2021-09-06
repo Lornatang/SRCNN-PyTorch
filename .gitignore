@@ -126,20 +126,18 @@ dmypy.json
 .idea
 .vscode
 
+# Mac configure file.
 .DS_Store
 
-data/DIV2K
-data/91-images
-data/train
-data/val
+# Program run create directory.
+data
+results
+samples
 
-output
-result
-logs
-
-weights/*.pth
-weights/*.zip
+# Program run create file.
+*.bmp
+*.png
 *.mp4
 *.zip
-
-srcnn_*x.png
+*.csv
+*.pth
