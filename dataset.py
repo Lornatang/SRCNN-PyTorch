@@ -11,54 +11,52 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+
+# ==============================================================================
+# File description: Realize the function of data set preparation.
+# ==============================================================================
 import os
 from typing import Tuple
 
-import torch.utils.data
-import torchvision.transforms.functional as F
-import torchvision.transforms.functional_pil as F_pil
 from PIL import Image
 from torch import Tensor
+from torch.utils.data import Dataset
 
-__all__ = ["CustomDataset"]
+from imgproc import image2tensor
+
+__all__ = ["BaseDataset"]
 
 
-class CustomDataset(torch.utils.data.Dataset):
-    r""" Customize the data set loading function and prepare 
-    low/high resolution image data in advance."""
+class BaseDataset(Dataset):
+    """Customize the data set loading function and prepare low/high resolution image data in advance.
+
+    Args:
+        dataroot (str): training data set address.
+    """
 
     def __init__(self, dataroot: str) -> None:
-        super(CustomDataset, self).__init__()
-        # Get the index of all images in the high-resolution folder and 
-        # low-resolution folder under the data set address.
+        super(BaseDataset, self).__init__()
+        # Get the index of all images in the high-resolution folder and low-resolution folder under the data set address.
         # Note: The high and low resolution file index should be corresponding.
         lr_dir_path = os.path.join(dataroot, "inputs")
         hr_dir_path = os.path.join(dataroot, "target")
-        lr_filenames = os.listdir(lr_dir_path)
-        hr_filenames = os.listdir(hr_dir_path)
-        self.lr_filenames = [os.path.join(lr_dir_path, x) for x in lr_filenames]
-        self.hr_filenames = [os.path.join(hr_dir_path, x) for x in hr_filenames]
+        self.filenames = os.listdir(lr_dir_path)
+        self.lr_filenames = [os.path.join(lr_dir_path, x) for x in self.filenames]
+        self.hr_filenames = [os.path.join(hr_dir_path, x) for x in self.filenames]
 
     def __getitem__(self, index: int) -> Tuple[Tensor, Tensor]:
         lr = Image.open(self.lr_filenames[index]).convert("YCbCr")
         hr = Image.open(self.hr_filenames[index]).convert("YCbCr")
 
-        # Data enhancement operation.
-        if torch.rand(1).item() > 0.5:  # horizontal flip.
-            lr = F_pil.hflip(lr)
-            hr = F_pil.hflip(hr)
-        if torch.rand(1).item() > 0.5:  # Flip up and down.
-            lr = F_pil.vflip(lr)
-            hr = F_pil.vflip(hr)
-
         # Only extract the image data of the Y channel.
         lr, _, _ = lr.split()
         hr, _, _ = hr.split()
-        # Array data is converted to Tensor format.
-        lr = F.to_tensor(lr)
-        hr = F.to_tensor(hr)
+
+        # `PIL.Image` image data is converted to `Tensor` format data.
+        lr = image2tensor(lr)
+        hr = image2tensor(hr)
 
         return lr, hr
 
     def __len__(self) -> int:
-        return len(self.lr_filenames)
+        return len(self.filenames)
