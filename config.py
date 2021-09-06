@@ -25,9 +25,9 @@ from torch.utils.tensorboard import SummaryWriter
 
 from model import SRCNN
 
-# ================================================ =============================
+# =============================================================================
 # General configuration
-# ================================================ =============================
+# =============================================================================
 torch.manual_seed(0)             # Set random seed.
 upscale_factor = 2               # How many times the size of the high-resolution image in the data set is than the low-resolution image.
 device = torch.device("cuda:0")  # The first GPU is used for processing by default.
@@ -35,9 +35,9 @@ cudnn.benchmark = True           # If the dimension or type of the input data of
 mode = "train"                   # Run mode. Specific mode loads specific variables.
 exp_name = "exp001"              # Experiment name.
 
-# ================================================ =============================
+# =============================================================================
 # Training configuration
-# ================================================ =============================
+# =============================================================================
 if mode == "train":
     # 1. Data set.
     train_dir = "data/T91/train"  # The address of the training data set.
@@ -73,9 +73,9 @@ if mode == "train":
     exp_dir1 = os.path.join("samples", exp_name)
     exp_dir2 = os.path.join("results", exp_name)
 
-# ================================================ =============================
+# =============================================================================
 # Verify configuration
-# ================================================ =============================
+# =============================================================================
 if mode == "validate":
     exp_dir = os.path.join("results", "test", exp_name)  # Additional variables.
 
