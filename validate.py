@@ -10,108 +10,40 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ============================================================================
-import argparse
-import os
+# ==============================================================================
 
+# ==============================================================================
+# File description: Realize the verification function after model training.
+# ==============================================================================
+import shutil
+import warnings
+from typing import Tuple
+
+import cv2
 import numpy as np
 import skimage.color
 import skimage.io
 import skimage.metrics
-import torch
-import torchvision.transforms as transforms
+import torchvision.utils
 from PIL import Image
+from skimage import img_as_ubyte
 
-import models
-
-model_names = sorted(name for name in models.__dict__
-    if name.islower() and not name.startswith("__")
-    and callable(models.__dict__[name]))
-
-parser = argparse.ArgumentParser()
-parser.add_argument("--lr-dir", type=str, default="./data/Set5/LRbicx4",
-                    help="Path to lr datasets. (Default: `./data/Set5/LRbicx4`)")
-parser.add_argument("--sr-dir", type=str, default="./sample/Set5",
-                    help="Path to sr datasets. (Default: `./sample/Set5`)")
-parser.add_argument("--hr-dir", type=str, default="./data/Set5/GTmod12",
-                    help="Path to hr datasets. (Default: `./data/Set5/GTmod12`)")
-parser.add_argument("--arch", metavar="ARCH", default="srcnn_x4",
-                    choices=model_names,
-                    help="model architecture: " +
-                        "srcnn_x2 | srcnn_x3 | srcnn_x4"
-                        " (Default: `srcnn_x4`)")
-parser.add_argument("--scale", type=int, default=4, choices=[2, 3, 4],
-                    help="Low to high resolution scaling factor. (Default: 4)")
-parser.add_argument("--pretrained", dest="pretrained", action="store_true",
-                    help="Use pre-trained model.")
-parser.add_argument("--model-path", type=str, default="",
-                    help="Path to weights.")
-args = parser.parse_args()
-
-# Set the operating device model.
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+from config import *
+from imgproc import *
 
 
-def sr(model, lr_filename, sr_filename):
-    r""" Turn low resolution into super resolution.
-    
-    Args:
-        model (torch.nn.Module): Super-resolution model.
-        lr_filename (str): Low resolution image address.
-        sr_filename (srt): High resolution image address.
-    """
-    with torch.no_grad():
-        image = Image.open(lr_filename).convert("YCbCr")
-        new_image_size = (image.size[0] * args.scale, image.size[1] * args.scale)
-        # Use BICUBIC to zoom the image to the specified size.
-        image = image.resize(new_image_size, Image.BICUBIC)
-        # Extract the Y channel input of the image and convert it to Tensor format.
-        y, cb, cr = image.split()        
-        image_tensor = transforms.ToTensor()(y)
-        image_tensor = image_tensor.view(1, -1, y.size[1], y.size[0]).to(device)
-        
-        # The Y channel data is super-divided and converted to PIL format.
-        out = model(image_tensor)
-        out_y = out[0].cpu().numpy()
-        out_y *= 255.0
-        out_y = out_y.clip(0, 255)
-        out_y = Image.fromarray(np.uint8(out_y[0]), mode="L")
-        out_image = Image.merge("YCbCr", (out_y, cb, cr)).convert("RGB")
-        # Save the super-resolution image to the specified location.
-        out_image.save(sr_filename)
+def cal_psnr_and_ssim(sr_image, hr_image) -> Tuple[float, float]:
+    # Test for Y channel.
+    sr = normalize(sr_image)
+    hr = normalize(hr_image)
+    sr = skimage.color.rgb2ycbcr(sr)[:, :, 0:1]
+    hr = skimage.color.rgb2ycbcr(hr)[:, :, 0:1]
+    sr = normalize(sr)
+    hr = normalize(hr)
 
-
-def image_similarity_measures(sr_filename, hr_filename):
-    r""" Image similarity measures function.
-    
-    Args:
-        lr_filename (str): Low resolution image address.
-        sr_filename (srt): High resolution image address.
-
-    Returns:
-        PSNR value(float), SSIM value(float).
-    """
-    sr_image = skimage.io.imread(sr_filename)
-    hr_image = skimage.io.imread(hr_filename)
-
-    # Delete 4 pixels around the image to facilitate PSNR calculation.
-    sr_image = sr_image[4:-4, 4:-4, ...]
-    hr_image = hr_image[4:-4, 4:-4, ...]
-
-    # Calculate the Y channel of the image. Use the Y channel to 
-    # calculate PSNR and SSIM instead of using RGB three channels.
-    sr_image = sr_image / 255.0
-    hr_image = hr_image / 255.0
-    sr_image = skimage.color.rgb2ycbcr(sr_image)[:, :, 0:1]
-    hr_image = skimage.color.rgb2ycbcr(hr_image)[:, :, 0:1]
-    # Because rgb2ycbcr() outputs a floating point type and the range is [0, 255], 
-    # it needs to be renormalized to [0, 1].
-    sr_image = sr_image / 255.0
-    hr_image = hr_image / 255.0
-
-    psnr = skimage.metrics.peak_signal_noise_ratio(sr_image, hr_image)
-    ssim = skimage.metrics.structural_similarity(sr_image,
-                                                 hr_image,
+    psnr = skimage.metrics.peak_signal_noise_ratio(sr, hr, data_range=1.0)
+    ssim = skimage.metrics.structural_similarity(sr,
+                                                 hr,
                                                  win_size=11,
                                                  gaussian_weights=True,
                                                  multichannel=True,
@@ -119,53 +51,139 @@ def image_similarity_measures(sr_filename, hr_filename):
                                                  K1=0.01,
                                                  K2=0.03,
                                                  sigma=1.5)
-
     return psnr, ssim
 
 
-def main():
+def cal_spectrum(sr_image, hr_image) -> float:
+    # Scikit-image format is converted to OpenCV format.
+    sr = img_as_ubyte(sr_image)
+    hr = img_as_ubyte(hr_image)
+    sr = cv2.cvtColor(sr, cv2.COLOR_RGB2GRAY)
+    hr = cv2.cvtColor(hr, cv2.COLOR_RGB2GRAY)
+
+    n = sr.shape[0]
+
+    # 1. Calculate the image gray histogram horizontally.
+    all_hist_sr = []
+    all_hist_hr = []
+    for hist_height in range(n):
+        # Calculate each line of gray histogram.
+        hist_sr = cv2.calcHist([sr[hist_height, :]], [0], None, [n], [0, 255])
+        hist_hr = cv2.calcHist([hr[hist_height, :]], [0], None, [n], [0, 255])
+        all_hist_sr.append(hist_sr)
+        all_hist_hr.append(hist_hr)
+
+    # 2. 1D Fourier transform (cut one-sided data).
+    all_spectrum_sr = []
+    all_spectrum_hr = []
+    for index in range(n):
+        # Fast Fourier Transform
+        fft_sr = np.fft.fft(all_hist_sr[index])
+        fft_hr = np.fft.fft(all_hist_hr[index])
+        # Take the absolute value of the complex number, that is, the modulus of the complex number (bilateral spectrum).
+        spectrum_sr = np.abs(fft_sr)
+        spectrum_hr = np.abs(fft_hr)
+        # Due to symmetry, only half of the interval (one-sided spectrum) is taken.
+        spectrum_sr = spectrum_sr[range(n // 2)]
+        spectrum_hr = spectrum_hr[range(n // 2)]
+        all_spectrum_sr.append(spectrum_sr)
+        all_spectrum_hr.append(spectrum_hr)
+
+    # 3. Find the average of the spectrum.
+    avg_spectrum_sr = []
+    avg_spectrum_hr = []
+    # Traverse the spectrum values in the range of 0~(N//2) in N spectra.
+    for spectrum in range(n // 2):
+        total_spectrum_sr = 0
+        total_spectrum_hr = 0
+        for index in range(n):
+            total_spectrum_sr += all_spectrum_sr[index][spectrum]
+            total_spectrum_hr += all_spectrum_hr[index][spectrum]
+        avg_spectrum_sr.append(total_spectrum_sr / n)
+        avg_spectrum_hr.append(total_spectrum_hr / n)
+
+    # 4. Use the formula to find the difference.
+    diff = 0.
+    for index in range(n // 2):
+        diff += (avg_spectrum_hr[index] - avg_spectrum_sr[index]) ** 2
+
+    spectrum = float(np.sqrt(diff / (n / 2)))
+
+    return spectrum
+
+
+def image_quality_assessment(sr_path: str, hr_path: str) -> Tuple[float, float, float]:
+    """Image quality evaluation function.
+
+    Args:
+        sr_path (str): Super-resolution image address.
+        hr_path (srt): High resolution image address.
+
+    Returns:
+        PSNR value(float), SSIM value(float), Spectrum value(float)
+    """
+    sr_image = skimage.io.imread(sr_path)
+    hr_image = skimage.io.imread(hr_path)
+
+    if sr_image.shape != hr_image.shape:
+        warnings.warn("Image size not equal! Possible errors in the calculation of the spectrum!")
+    if sr_image.shape[0] != sr_image.shape[1]:
+        warnings.warn("Image width and height is not equal! Possible errors in the calculation of the spectrum!")
+
+    psnr, ssim = cal_psnr_and_ssim(sr_image, hr_image)
+    spectrum = cal_spectrum(sr_image, hr_image)
+
+    return psnr, ssim, spectrum
+
+
+def main() -> None:
+    # Create a super-resolution experiment result folder.
+    if os.path.exists(exp_dir):
+        shutil.rmtree(exp_dir)
+    os.makedirs(exp_dir)
+
+    # Load model weights.
+    state_dict = torch.load(model_path, map_location=device)
+    model.load_state_dict(state_dict)
+    # Start the verification mode of the model.
+    model.eval()
+    # Turn on half-precision inference.
+    model.half()
+
     # Initialize the image evaluation index.
-    avg_psnr = 0.0
-    avg_ssim = 0.0
+    total_psnr = 0.0
+    total_ssim = 0.0
+    total_spectrum = 0.0
 
-    # Load the model and weights.
-    if args.pretrained:
-        print(f"=> Using pre-trained model '{args.arch}'")
-        model = models.__dict__[args.arch](pretrained=True, mode="eval")
-    else:
-        print(f"=> Creating model '{args.arch}'")
-        model = models.__dict__[args.arch](mode="eval")
+    # Get a list of test image file names.
+    filenames = os.listdir(lr_dir)
+    # Get the number of test image files.
+    total_files = len(filenames)
 
-    if args.model_path != "":
-        print(f"=> Loading weights from `{args.model_path}`.")
-        model.load_state_dict(torch.load(args.model_path, torch.device("cpu")))
-
-    # Switch model to specifal device.
-    model = model.to(device)
-
-    # Get the test image file index.
-    filenames = os.listdir(args.lr_dir)
-
-    for index in range(len(filenames)):
-        lr_filename = os.path.join(args.lr_dir, filenames[index])
-        sr_filename = os.path.join(args.sr_dir, filenames[index])
-        hr_filename = os.path.join(args.hr_dir, filenames[index])
-
+    for index in range(total_files):
+        lr_path = os.path.join(lr_dir, filenames[index])
+        sr_path = os.path.join(sr_dir, filenames[index])
+        hr_path = os.path.join(hr_dir, filenames[index])
         # Process low-resolution images into super-resolution images.
-        sr(model, lr_filename, sr_filename)
+        lr = Image.open(lr_path).convert("RGB")
+        lr_tensor = image2tensor(lr).unsqueeze(0)
+        lr_tensor = lr_tensor.half()
+        lr_tensor = lr_tensor.to(device)
+        with torch.no_grad():
+            sr_tensor = model(lr_tensor)
+            torchvision.utils.save_image(sr_tensor, sr_path, normalize=True)
 
-        # Test the image quality difference between the super-resolution image 
+        # Test the image quality difference between the super-resolution image
         # and the original high-resolution image.
-        psnr, ssim = image_similarity_measures(sr_filename, hr_filename)
-        avg_psnr += psnr
-        avg_ssim += ssim
+        print(f"Test `{os.path.abspath(lr_path)}`.")
+        psnr, ssim, spectrum = image_quality_assessment(sr_path, hr_path)
+        total_psnr += psnr
+        total_ssim += ssim
+        total_spectrum += spectrum
 
-    # Calculate the average index value of the image quality of the test dataset.
-    avg_psnr = avg_psnr / len(filenames)
-    avg_ssim = avg_ssim / len(filenames)
-
-    print(f"=> Avg PSNR: {avg_psnr:.2f}dB.")
-    print(f"=> Avg SSIM: {avg_ssim:.4f}.")
+    print(f"PSNR:    {total_psnr / total_files:.2f}.\n"
+          f"SSIM:    {total_ssim / total_files:.4f}.\n"
+          f"Spectrum {total_spectrum / total_files:.4f}")
 
 
 if __name__ == "__main__":
