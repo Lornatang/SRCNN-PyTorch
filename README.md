@@ -1,37 +1,45 @@
 # SRCNN-PyTorch
 
-### Overview
+## Overview
 
-This repository contains an op-for-op PyTorch reimplementation of [Image Super-Resolution Using Deep Convolutional Networks](https://arxiv.org/abs/1501.00092v3).
+This repository contains an op-for-op PyTorch reimplementation
+of [Image Super-Resolution Using Deep Convolutional Networks](https://arxiv.org/abs/1501.00092v3).
 
-### Table of contents
+## Table of contents
 
 - [SRCNN-PyTorch](#srcnn-pytorch)
-    - [Overview](#overview)
-    - [Table of contents](#table-of-contents)
-    - [About Image Super-Resolution Using Deep Convolutional Networks](#about-image-super-resolution-using-deep-convolutional-networks)
-    - [Installation](#installation)
-      - [Clone and install requirements](#clone-and-install-requirements)
-      - [Download all datasets](#download-all-datasets)
-        - [Train datasets](#train-datasets)
-        - [Test datasets](#test-datasets)
-    - [Test](#test)
-    - [Train (e.g T91)](#train-eg-t91)
-    - [Model performance](#model-performance)
-    - [Result](#result)
-    - [Contributing](#contributing)
-    - [Credit](#credit)
-      - [Image Super-Resolution Using Deep Convolutional Networks](#image-super-resolution-using-deep-convolutional-networks)
+  - [Overview](#overview)
+  - [Table of contents](#table-of-contents)
+  - [About Image Super-Resolution Using Deep Convolutional Networks](#about-image-super-resolution-using-deep-convolutional-networks)
+  - [Installation](#installation)
+    - [Clone and install requirements](#clone-and-install-requirements)
+  - [Download weights](#download-weights)
+  - [Download datasets](#download-datasets)
+    - [Download train dataset](#download-train-dataset)
+    - [Download val dataset](#download-val-dataset)
+  - [Test](#test)
+  - [Train](#train)
+  - [Model performance](#model-performance)
+  - [Result](#result)
+  - [Credit](#credit)
+    - [Image Super-Resolution Using Deep Convolutional Networks](#image-super-resolution-using-deep-convolutional-networks)
 
-### About Image Super-Resolution Using Deep Convolutional Networks
+## About Image Super-Resolution Using Deep Convolutional Networks
 
 If you're new to SRCNN, here's an abstract straight from the paper:
 
-We propose a deep learning method for single image super-resolution (SR). Our method directly learns an end-to-end mapping between the low/high-resolution images. The mapping is represented as a deep convolutional neural network (CNN) that takes the low-resolution image as the input and outputs the high-resolution one. We further show that traditional sparse-coding-based SR methods can also be viewed as a deep convolutional network. But unlike traditional methods that handle each component separately, our method jointly optimizes all layers. Our deep CNN has a lightweight structure, yet demonstrates state-of-the-art restoration quality, and achieves fast speed for practical on-line usage. We explore different network structures and parameter settings to achieve trade-offs between performance and speed. Moreover, we extend our network to cope with three color channels simultaneously, and show better overall reconstruction quality.
+We propose a deep learning method for single image super-resolution (SR). Our method directly learns an end-to-end
+mapping between the low/high-resolution images. The mapping is represented as a deep convolutional neural network (CNN)
+that takes the low-resolution image as the input and outputs the high-resolution one. We further show that traditional
+sparse-coding-based SR methods can also be viewed as a deep convolutional network. But unlike traditional methods that
+handle each component separately, our method jointly optimizes all layers. Our deep CNN has a lightweight structure, yet
+demonstrates state-of-the-art restoration quality, and achieves fast speed for practical on-line usage. We explore
+different network structures and parameter settings to achieve trade-offs between performance and speed. Moreover, we
+extend our network to cope with three color channels simultaneously, and show better overall reconstruction quality.
 
-### Installation
+## Installation
 
-#### Clone and install requirements
+### Clone and install requirements
 
 ```bash
 git clone https://github.com/Lornatang/SRCNN-PyTorch.git
@@ -39,127 +47,95 @@ cd SRCNN-PyTorch/
 pip install -r requirements.txt
 ```
 
-#### Download all datasets
+## Download weights
 
-##### Train datasets
+- [Google Driver](https://drive.google.com/file/d/1GJZztdiJ6oBmJe9Ntyyos_psMzM8KY4P/view?usp=sharing)
+- [Baidu Driver](https://pan.baidu.com/s/1_B97Ga6thSi5h43Wuqyw0Q) access:`llot`
 
-**T91 dataset**
+## Download datasets
 
-The downloaded data set is placed in the `data` directory.
+### Download train dataset
 
-- [baiduclouddisk](https://pan.baidu.com/s/13fHKvBS6CKWbor9VjdrdKg) access: `llot`
-- [googleclouddisk](https://drive.google.com/file/d/1qCxnfiqIEIMy6K5jy0wZm8K8294lDmOU/view?usp=sharing)
+- [Google Driver](https://drive.google.com/drive/folders/1PYizfnKq-UtRCDoSy79PGA4FC5HqAqch?usp=sharing)
+- [Baidu Driver](https://pan.baidu.com/s/1Oa1oas0GOT78DX1IAX7svg) access: `llot`
 
-##### Test datasets
+### Download val dataset
 
-**Set5 dataset**
+Set5 dataset:
 
-- [baiduclouddisk](https://pan.baidu.com/s/1_B97Ga6thSi5h43Wuqyw0Q) access: `llot`
-- [gooleclouddisk](https://drive.google.com/file/d/10aObmC4_UtTui2luzBNcWjfoGkeSJi2G/view?usp=sharing)
+- [Google Driver](https://drive.google.com/file/d/1GJZztdiJ6oBmJe9Ntyyos_psMzM8KY4P/view?usp=sharing)
+- [Baidu Driver](https://pan.baidu.com/s/1_B97Ga6thSi5h43Wuqyw0Q) access:`llot`
 
-**Set14 dataset**
+Set14 dataset:
 
-- [baiduclouddisk](https://pan.baidu.com/s/1wy_kf4Kkj2nSkgRUkaLzVA) access: `llot`
-- [googlecloudisk](https://drive.google.com/file/d/1-3xXHunN_WqTo1c1jVWCJa_0ZG-1LTdv/view?usp=sharing)
+- [Google Driver](https://drive.google.com/file/d/14bxrGB3Nej8vBqxLoqerGX2dhChQKJoa/view?usp=sharing)
+- [Baidu Driver](https://pan.baidu.com/s/1wy_kf4Kkj2nSkgRUkaLzVA) access:`llot`
 
-**BSD100 dataset**
+Bsd100 dataset:
 
-- [baiduclouddisk](https://pan.baidu.com/s/1Ig8t3_G4Nzhl8MvPAvdzFA) access: `llot`
-- [googlecloudisk](https://drive.google.com/file/d/1EVba9kKtXAbmV6esnfADjH1Ul-uThOeE/view?usp=sharing)
+- [Google Driver](https://drive.google.com/file/d/1RTlPATPBCfUufJspgTik5KUEzAuVcyFF/view?usp=sharing)
+- [Baidu Driver](https://pan.baidu.com/s/1Ig8t3_G4Nzhl8MvPAvdzFA) access:`llot`
 
+## Test
 
-### Test
+Modify the contents of the file as follows.
 
-```text
-usage: validate.py [-h] [--lr-dir LR_DIR] [--sr-dir SR_DIR] [--hr-dir HR_DIR] [--arch ARCH] [--scale {2,3,4}]
-                   [--pretrained] [--model-path MODEL_PATH]
+1. `config.py` line 35 `mode = "train"` change to `mode = "validate"`;
+2. `config.py` line 83 `model_path = f"results/{exp_name}/best.pth"` change to `model_path = f"<YOUR-WEIGHTS-PATH>.pth"`
+   ;
+3. Run `python validate.py`.
 
-optional arguments:
-  -h, --help            show this help message and exit
-  --lr-dir LR_DIR       Path to lr datasets. (Default: `./data/Set5/LRbicx4`)
-  --sr-dir SR_DIR       Path to sr datasets. (Default: `./sample/Set5`)
-  --hr-dir HR_DIR       Path to hr datasets. (Default: `./data/Set5/GTmod12`)
-  --arch ARCH           model architecture: srcnn_x2 | srcnn_x3 | srcnn_x4 (Default: `srcnn_x4`)
-  --scale {2,3,4}       Low to high resolution scaling factor. (Default: 4)
-  --pretrained          Use pre-trained model.
-  --model-path MODEL_PATH
-                        Path to weights.
+## Train
 
-# Example (Set5 dataset)
-python validate.py --pretrained
-```
+Modify the contents of the file as follows.
 
-### Train (e.g T91)
+1. `config.py` line 35 `mode = "validate"` change to `mode = "train"`;
+2. Run `python train.py`.
 
-```text
-usage: train.py [-h] [--dataroot DATAROOT] [--epochs N] [--batch-size BATCH_SIZE] [--lr LR] [--arch ARCH]
-                [--scale {2,3,4}] [--pretrained] [--model-path MODEL_PATH] [--seed SEED]
+If you want to load weights that you've trained before, modify the contents of the file as follows.
 
-optional arguments:
-  -h, --help            show this help message and exit
-  --dataroot DATAROOT   Path to datasets. (Default: `./data/T91/LRbicx4`)
-  --epochs N            Number of total epochs to run. According to the 1e8 iters in the original paper.(Default:
-                        4096)
-  --batch-size BATCH_SIZE
-                        mini-batch size (Default: 128)
-  --lr LR               Learning rate. (Default: 0.0001)
-  --arch ARCH           model architecture: srcnn_x2 | srcnn_x3 | srcnn_x4 (Default: `srcnn_x4`)
-  --scale {2,3,4}       Low to high resolution scaling factor.
-  --pretrained          Use pre-trained model.
-  --model-path MODEL_PATH
-                        Path to weights.
-  --seed SEED           Seed for initializing training. (Default: 666)
+1. `config.py` line 35 `mode = "validate"` change to `mode = "train"`;
+2. `config.py` line 53 `start_epoch = 0` change to `start_epoch = XXX`;
+3. `config.py` line 54 `resume = False` change to `resume = True`;
+4. `config.py` line 55 `resume_weight = ""` change to `resume_weight = <YOUR-RESUME-WIGHTS-PATH>`;
+5. Run `python train.py`.
 
-# Example
-python train.py
-# If you want to load weights that you've trained before, run the following command.
-python train.py --model-path sample/srcnn_x4_epoch10.pth
-```
-
-### Model performance
+## Model performance
 
 | Model | Params | FLOPs | CPU Speed | GPU Speed |
 | :---: | :----: | :---: | :-------: | :-------: |
-| srcnn | 0.01M  | 1.07G |   17ms    |    1ms    |
+| srcnn | 1.55M  | 2.6G  |    9ms    |    7ms    |
 
-```text
-# Example (CPU: Intel i9-10900X/GPU: Nvidia GeForce RTX 2080Ti)
-python cal_model_complexity.py
-```
+## Result
 
-### Result
-
-Source of original paper results: https://arxiv.org/pdf/1609.04802v5.pdf
+Source of original paper results: https://arxiv.org/pdf/1501.00092v3.pdf
 
 In the following table, the value in `()` indicates the result of the project, and `-` indicates no test.
 
-| Dataset | Scale |   PSNR   |   SSIM   |
-| :-----: | :---: | :------: | :------: |
-|  Set5   |   2   | -(**-**) | -(**-**) |
-|  Set14  |   2   | -(**-**) | -(**-**) |
-|  Set5   |   3   | -(**-**) | -(**-**) |
-|  Set14  |   3   | -(**-**) | -(**-**) |
-|  Set5   |   4   | -(**-**) | -(**-**) |
-|  Set14  |   4   | -(**-**) | -(**-**) |
-
+| Dataset | Scale |   PSNR   |   SSIM   |   MOS    |
+| :-----: | :---: | :------: | :------: | :------: |
+|  Set5   |   4   | -(**-**) | -(**-**) | -(**-**) |
+|  Set14  |   4   | -(**-**) | -(**-**) | -(**-**) |
+| BSDS100 |   4   | -(**-**) | -(**-**) | -(**-**) |
 
 Low resolution / Recovered High Resolution / Ground Truth
-<span align="center"><img src="assets/result.png" alt=""></span>
+<span align="center"><img src="assets/result.png"/></span>
 
-### Contributing
+## Credit
 
-If you find a bug, create a GitHub issue, or even better, submit a pull request. Similarly, if you have questions, simply post them as GitHub issues.
-
-I look forward to seeing what the community does with these models!
-
-### Credit
-
-#### Image Super-Resolution Using Deep Convolutional Networks
+### Image Super-Resolution Using Deep Convolutional Networks
 
 _Chao Dong, Chen Change Loy, Kaiming He, Xiaoou Tang_ <br>
 
 **Abstract** <br>
-We propose a deep learning method for single image super-resolution (SR). Our method directly learns an end-to-end mapping between the low/high-resolution images. The mapping is represented as a deep convolutional neural network (CNN) that takes the low-resolution image as the input and outputs the high-resolution one. We further show that traditional sparse-coding-based SR methods can also be viewed as a deep convolutional network. But unlike traditional methods that handle each component separately, our method jointly optimizes all layers. Our deep CNN has a lightweight structure, yet demonstrates state-of-the-art restoration quality, and achieves fast speed for practical on-line usage. We explore different network structures and parameter settings to achieve trade-offs between performance and speed. Moreover, we extend our network to cope with three color channels simultaneously, and show better overall reconstruction quality.
+We propose a deep learning method for single image super-resolution (SR). Our method directly learns an end-to-end
+mapping between the low/high-resolution images. The mapping is represented as a deep convolutional neural network (CNN)
+that takes the low-resolution image as the input and outputs the high-resolution one. We further show that traditional
+sparse-coding-based SR methods can also be viewed as a deep convolutional network. But unlike traditional methods that
+handle each component separately, our method jointly optimizes all layers. Our deep CNN has a lightweight structure, yet
+demonstrates state-of-the-art restoration quality, and achieves fast speed for practical on-line usage. We explore
+different network structures and parameter settings to achieve trade-offs between performance and speed. Moreover, we
+extend our network to cope with three color channels simultaneously, and show better overall reconstruction quality.
 
 [[Paper]](https://arxiv.org/pdf/1501.00092) [[Author's implements(Caffe)]](http://mmlab.ie.cuhk.edu.hk/projects/SRCNN/SRCNN_train.zip)
 
@@ -173,4 +149,3 @@ We propose a deep learning method for single image super-resolution (SR). Our me
     primaryClass={cs.CV}
 }
 ```
-````
