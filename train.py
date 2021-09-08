@@ -50,7 +50,7 @@ def train(train_dataloader, epoch) -> None:
         # Write the loss during training into Tensorboard.
         iters = index + epoch * batches + 1
         writer.add_scalar("Train/Loss", pixel_loss.item(), iters)
-        # In this Epoch, the loss function is printed every ten iterations and the last iteration.
+        # Print the loss function every ten iterations and the last iteration in this Epoch.
         if (index + 1) % 10 == 0 or (index + 1) == batches:
             print(f"Train Epoch[{epoch + 1:04d}/{epochs:04d}]({index + 1:05d}/{batches:05d}) "
                   f"Loss: {pixel_loss.item():.6f}.")
