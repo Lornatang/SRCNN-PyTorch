@@ -22,48 +22,64 @@ from dataset import BaseDataset
 
 
 def train(train_dataloader, epoch) -> None:
-    """The purpose of training is to minimize the pixel difference between super-resolution images and high-resolution images."""
-    batches = len(train_dataloader)
+    """Train the model.
 
-    # Start training mode.
+    Args:
+        train_dataloader (torch.utils.data.DataLoader): The loader of the training data set.
+        epoch (int): number of training cycles.
+
+    """
+    # Calculate how many iterations there are under Epoch.
+    batches = len(train_dataloader)
+    # Put the model in training mode.
     model.train()
 
     for index, (lr, hr) in enumerate(train_dataloader):
-        # 0. Copy the data to the designated device.
+        # Copy the data to the specified device.
         lr = lr.to(device)
         hr = hr.to(device)
-        # 1. Set the gradient of the generated model to 0.
+        # Initialize the model gradient.
         model.zero_grad()
-        # 2. Calculate the difference between the super-resolution image and the high-resolution image at the pixel level.
+        # Generate super-resolution images.
         sr = model(lr)
+        # Calculate the difference between the super-resolution image and the high-resolution image at the pixel level.
         pixel_loss = criterion(sr, hr)
-        # 3. Update the weights of the generative model.
+        # Update model weights.
         pixel_loss.backward()
         optimizer.step()
-
-        # Write the loss value in the process of training and generating the network into Tensorboard.
+        # Write the loss during training into Tensorboard.
         iters = index + epoch * batches + 1
         writer.add_scalar("Train/Loss", pixel_loss.item(), iters)
-        # Only output the last loss function.
-        if (index + 1) == batches:
-            print(f"Epoch[{epoch + 1:05d}/{epochs:05d}]({index + 1:05d}/{batches:05d}) "
+        # In this Epoch, the loss function is printed every ten iterations and the last iteration.
+        if (index + 1) % 10 == 0 or (index + 1) == batches:
+            print(f"Train Epoch[{epoch + 1:04d}/{epochs:04d}]({index + 1:05d}/{batches:05d}) "
                   f"Loss: {pixel_loss.item():.6f}.")
 
 
 def validate(valid_dataloader, epoch) -> float:
-    """Verify the performance of the model after each Epoch."""
-    batches = len(valid_dataloader)
-    total_psnr_value = 0.0
+    """Verify the model.
 
-    # Start verification mode.
+    Args:
+        valid_dataloader (torch.utils.data.DataLoader): loader for validating data set.
+        epoch (int): number of training cycles.
+
+    Returns:
+        PSNR value(float).
+
+    """
+    # Calculate how many iterations there are under Epoch.
+    batches = len(valid_dataloader)
+    # Put the model in verification mode.
     model.eval()
+    # Initialize the evaluation index.
+    total_psnr_value = 0.0
 
     with torch.no_grad():
         for index, (lr, hr) in enumerate(valid_dataloader):
             # Copy the data to the specified device.
             lr = lr.to(device)
             hr = hr.to(device)
-            # Calculate the loss.
+            # Generate super-resolution images.
             sr = model(lr)
             # Calculate the PSNR indicator.
             mse_loss = ((sr - hr) ** 2).data.mean()
@@ -91,7 +107,8 @@ def main() -> None:
     valid_dataset = BaseDataset(valid_dir)
     train_dataloader = DataLoader(train_dataset, batch_size, True, pin_memory=True)
     valid_dataloader = DataLoader(valid_dataset, batch_size, False, pin_memory=True)
-    # Check whether the training progress of the last abnormal end is restored, for example, the power is cut off in the middle of the training.
+    # Check whether the training progress of the last abnormal end is restored, for example, 
+    # the power is cut off in the middle of the training.
     if resume:
         print("Resuming...")
         model.load_state_dict(torch.load(resume_weight))
@@ -99,19 +116,20 @@ def main() -> None:
     # Initialize the evaluation index of the training phase
     best_psnr_value = 0.0
     for epoch in range(start_epoch, epochs):
-        # Train the generator model under each Epoch.
+        # Train the super-score model under Epoch every time.
         train(train_dataloader, epoch)
-        # Verify the model performance after each Epoch.
+        # Verify the super-score model under Epoch every time.
         psnr_value = validate(valid_dataloader, epoch)
-        # Evaluate whether the performance of the current node model is the highest indicator.
+        # Determine whether the performance of the super-score model under Epoch is the best.
         is_best = psnr_value > best_psnr_value
         best_psnr_value = max(psnr_value, best_psnr_value)
-        # Save the node model. If the current node model has the best performance, a model file named `best.pth` will also be saved.
+        # Save the weights of the super-score model under Epoch. If the performance of the super-score model 
+        # under Epoch is best, another model file named `best.pth` will be saved in the `results` directory.
         torch.save(model.state_dict(), os.path.join(exp_dir1, f"epoch{epoch + 1}.pth"))
         if is_best:
             torch.save(model.state_dict(), os.path.join(exp_dir2, "best.pth"))
 
-    # Save the last iteration training model.
+    # Save the weight of the last sr model under Epoch.
     torch.save(model.state_dict(), os.path.join(exp_dir2, "last.pth"))
 
 
