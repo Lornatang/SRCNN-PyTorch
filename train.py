@@ -74,7 +74,7 @@ def validate(valid_dataloader, epoch) -> float:
         # Write the value of each round of verification indicators into Tensorboard.
         writer.add_scalar("Valid/PSNR", avg_psnr_value, epoch + 1)
         # Print evaluation indicators.
-        print(f"Test Epoch[{epoch + 1:05d}] avg PSNR: {avg_psnr_value:.2f}.")
+        print(f"Valid Epoch[{epoch + 1:05d}] avg PSNR: {avg_psnr_value:.2f}.\n")
 
     return avg_psnr_value
 
