@@ -33,7 +33,16 @@ from imgproc import *
 
 
 def cal_psnr_and_ssim(sr_image, hr_image) -> Tuple[float, float]:
-    # Test for Y channel.
+    """Calculate the PSNR and SSIM values between the super-resolution image and the high-resolution image.
+
+    Args:
+        sr_image (np.ndarray): Super-resolution image data read by Scikit-image.
+        hr_image (np.ndarray): High-resolution image data read by Scikit-image.
+
+    Returns:
+        PSNR value(float), SSIM value(float).
+    """
+    # Test the super-resolution performance of the Y channel.
     sr = normalize(sr_image)
     hr = normalize(hr_image)
     sr = skimage.color.rgb2ycbcr(sr)[:, :, 0:1]
@@ -55,6 +64,15 @@ def cal_psnr_and_ssim(sr_image, hr_image) -> Tuple[float, float]:
 
 
 def cal_spectrum(sr_image, hr_image) -> float:
+    """Calculate the Spectrum value between the super-resolution image and the high-resolution image.
+
+    Args:
+        sr_image (np.ndarray): Super-resolution image data read by Scikit-image.
+        hr_image (np.ndarray): High-resolution image data read by Scikit-image.
+
+    Returns:
+        Spectrum value(float).
+    """
     # Scikit-image format is converted to OpenCV format.
     sr = img_as_ubyte(sr_image)
     hr = img_as_ubyte(hr_image)
@@ -63,7 +81,7 @@ def cal_spectrum(sr_image, hr_image) -> float:
 
     n = sr.shape[0]
 
-    # 1. Calculate the image gray histogram horizontally.
+    # Calculate the image gray histogram horizontally.
     all_hist_sr = []
     all_hist_hr = []
     for hist_height in range(n):
@@ -73,7 +91,7 @@ def cal_spectrum(sr_image, hr_image) -> float:
         all_hist_sr.append(hist_sr)
         all_hist_hr.append(hist_hr)
 
-    # 2. 1D Fourier transform (cut one-sided data).
+    # 1D Fourier transform (cut one-sided data).
     all_spectrum_sr = []
     all_spectrum_hr = []
     for index in range(n):
@@ -89,7 +107,7 @@ def cal_spectrum(sr_image, hr_image) -> float:
         all_spectrum_sr.append(spectrum_sr)
         all_spectrum_hr.append(spectrum_hr)
 
-    # 3. Find the average of the spectrum.
+    # Find the average of the spectrum.
     avg_spectrum_sr = []
     avg_spectrum_hr = []
     # Traverse the spectrum values in the range of 0~(N//2) in N spectra.
@@ -102,7 +120,7 @@ def cal_spectrum(sr_image, hr_image) -> float:
         avg_spectrum_sr.append(total_spectrum_sr / n)
         avg_spectrum_hr.append(total_spectrum_hr / n)
 
-    # 4. Use the formula to find the difference.
+    # Use the formula to find the difference.
     diff = 0.
     for index in range(n // 2):
         diff += (avg_spectrum_hr[index] - avg_spectrum_sr[index]) ** 2
@@ -173,17 +191,16 @@ def main() -> None:
             sr_tensor = model(lr_tensor)
             torchvision.utils.save_image(sr_tensor, sr_path)
 
-        # Test the image quality difference between the super-resolution image
-        # and the original high-resolution image.
-        print(f"Test `{os.path.abspath(lr_path)}`.")
+        # Test the image quality difference between the super-resolution image and the original high-resolution image.
+        print(f"Processing `{os.path.abspath(lr_path)}`...")
         psnr, ssim, spectrum = image_quality_assessment(sr_path, hr_path)
         total_psnr += psnr
         total_ssim += ssim
         total_spectrum += spectrum
 
-    print(f"PSNR:    {total_psnr / total_files:.2f}.\n"
-          f"SSIM:    {total_ssim / total_files:.4f}.\n"
-          f"Spectrum {total_spectrum / total_files:.4f}")
+    print(f"PSNR: {total_psnr / total_files:.2f}.\n"
+          f"SSIM: {total_ssim / total_files:.4f}.\n"
+          f"Spectrum {total_spectrum / total_files:.6f}.\n")
 
 
 if __name__ == "__main__":
