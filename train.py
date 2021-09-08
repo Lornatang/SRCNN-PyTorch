@@ -106,7 +106,7 @@ def main() -> None:
         # Evaluate whether the performance of the current node model is the highest indicator.
         is_best = psnr_value > best_psnr_value
         best_psnr_value = max(psnr_value, best_psnr_value)
-        # Save the node model. If the current node model has the best performance, a model file ending with `-best` will also be saved.
+        # Save the node model. If the current node model has the best performance, a model file named `best.pth` will also be saved.
         torch.save(model.state_dict(), os.path.join(exp_dir1, f"epoch{epoch + 1}.pth"))
         if is_best:
             torch.save(model.state_dict(), os.path.join(exp_dir2, "best.pth"))
