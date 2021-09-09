@@ -40,18 +40,18 @@ class SRCNN(nn.Module):
 
         # Feature extraction layer.
         self.features = nn.Sequential(
-            nn.Conv2d(1, 64, 9, 1, 0 if not padding else 4),
+            nn.Conv2d(1, 64, (9, 9), (1, 1), (0, 0) if not padding else (4, 4)),
             nn.ReLU(True)
         )
 
         # Non-linear mapping layer.
         self.map = nn.Sequential(
-            nn.Conv2d(64, 32, 1, 1, 0),
+            nn.Conv2d(64, 32, (5, 5), (1, 1), (2, 2)),
             nn.ReLU(True)
         )
 
         # Rebuild the layer.
-        self.reconstruction = nn.Conv2d(32, 1, 5, 1, 0 if not padding else 2)
+        self.reconstruction = nn.Conv2d(32, 1, (5, 5), (1, 1), (0, 0) if not padding else (2, 2))
 
         # Initialize model weights.
         self._initialize_weights()
