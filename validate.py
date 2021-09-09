@@ -24,7 +24,6 @@ import numpy as np
 import skimage.color
 import skimage.io
 import skimage.metrics
-import torchvision.utils
 from PIL import Image
 from skimage import img_as_ubyte
 
@@ -174,25 +173,38 @@ def main() -> None:
     total_spectrum = 0.0
 
     # Get a list of test image file names.
-    filenames = os.listdir(lr_dir)
+    filenames = os.listdir(hr_dir)
     # Get the number of test image files.
     total_files = len(filenames)
 
     for index in range(total_files):
-        lr_path = os.path.join(lr_dir, filenames[index])
         sr_path = os.path.join(sr_dir, filenames[index])
         hr_path = os.path.join(hr_dir, filenames[index])
-        # Process low-resolution images into super-resolution images.
-        lr = Image.open(lr_path).convert("RGB")
-        lr_tensor = image2tensor(lr).unsqueeze(0)
-        lr_tensor = lr_tensor.half()
-        lr_tensor = lr_tensor.to(device)
+        # Make low-resolution images.
+        image = Image.open(hr_path).convert("RGB")
+        image_width = (image.width // upscale_factor) * upscale_factor
+        image_height = (image.height // upscale_factor) * upscale_factor
+        image = image.resize([image_width, image_height], Image.BICUBIC)
+        image = image.resize([image.width // upscale_factor, image.height // upscale_factor], Image.BICUBIC)
+        image = image.resize([image.width * upscale_factor, image.height * upscale_factor], Image.BICUBIC)
+        # Extract Y channel image data.
+        lr_image = np.array(image).astype(np.float32)
+        lr_ycbcr = convert_rgb_to_ycbcr(lr_image)
+        lr_image_y = lr_ycbcr[..., 0]
+        lr_image_y /= 255.
+        lr_tensor_y = torch.from_numpy(lr_image_y).to(device).unsqueeze(0).unsqueeze(0)
+        lr_tensor_y = lr_tensor_y.half()
+        # Only reconstruct the Y channel image data.
         with torch.no_grad():
-            sr_tensor = model(lr_tensor)
-            torchvision.utils.save_image(sr_tensor, sr_path)
+            sr_tensor_y = model(lr_tensor_y).clamp_(0., 1.)
+            sr_image_y = sr_tensor_y.mul(255.0).cpu().numpy().squeeze(0).squeeze(0)
+            sr_image = np.array([sr_image_y, lr_ycbcr[..., 1], lr_ycbcr[..., 2]]).transpose([1, 2, 0])
+            sr_image = np.clip(convert_ycbcr_to_rgb(sr_image), 0.0, 255.0).astype(np.uint8)
+            sr_image = Image.fromarray(sr_image)
+            sr_image.save(sr_path)
 
         # Test the image quality difference between the super-resolution image and the original high-resolution image.
-        print(f"Processing `{os.path.abspath(lr_path)}`...")
+        print(f"Processing `{os.path.abspath(hr_path)}`...")
         psnr, ssim, spectrum = image_quality_assessment(sr_path, hr_path)
         total_psnr += psnr
         total_ssim += ssim
