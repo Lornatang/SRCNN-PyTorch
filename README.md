@@ -8,21 +8,20 @@ of [Image Super-Resolution Using Deep Convolutional Networks](https://arxiv.org/
 ## Table of contents
 
 - [SRCNN-PyTorch](#srcnn-pytorch)
-  - [Overview](#overview)
-  - [Table of contents](#table-of-contents)
-  - [About Image Super-Resolution Using Deep Convolutional Networks](#about-image-super-resolution-using-deep-convolutional-networks)
-  - [Installation](#installation)
-    - [Clone and install requirements](#clone-and-install-requirements)
-  - [Download weights](#download-weights)
-  - [Download datasets](#download-datasets)
-    - [Download train dataset](#download-train-dataset)
-    - [Download val dataset](#download-val-dataset)
-  - [Test](#test)
-  - [Train](#train)
-  - [Model performance](#model-performance)
-  - [Result](#result)
-  - [Credit](#credit)
-    - [Image Super-Resolution Using Deep Convolutional Networks](#image-super-resolution-using-deep-convolutional-networks)
+    - [Overview](#overview)
+    - [Table of contents](#table-of-contents)
+    - [About Image Super-Resolution Using Deep Convolutional Networks](#about-image-super-resolution-using-deep-convolutional-networks)
+    - [Installation](#installation)
+        - [Clone and install requirements](#clone-and-install-requirements)
+    - [Download weights](#download-weights)
+    - [Download datasets](#download-datasets)
+        - [Download train dataset](#download-train-dataset)
+        - [Download val dataset](#download-val-dataset)
+    - [Test](#test)
+    - [Train](#train)
+    - [Result](#result)
+    - [Credit](#credit)
+        - [Image Super-Resolution Using Deep Convolutional Networks](#image-super-resolution-using-deep-convolutional-networks)
 
 ## About Image Super-Resolution Using Deep Convolutional Networks
 
@@ -49,8 +48,8 @@ pip install -r requirements.txt
 
 ## Download weights
 
-- [Google Driver](https://drive.google.com/file/d/1GJZztdiJ6oBmJe9Ntyyos_psMzM8KY4P/view?usp=sharing)
-- [Baidu Driver](https://pan.baidu.com/s/1_B97Ga6thSi5h43Wuqyw0Q) access:`llot`
+- [Google Driver](https://drive.google.com/drive/folders/1zPGktAZtph5aMR_gJdV5Q6S5gJEDvY8r?usp=sharing)
+- [Baidu Driver](https://pan.baidu.com/s/1n04tkTauMGLUp4asO1cY3w) access:`llot`
 
 ## Download datasets
 
@@ -100,23 +99,20 @@ If you want to load weights that you've trained before, modify the contents of t
 4. `config.py` line 55 `resume_weight = ""` change to `resume_weight = <YOUR-RESUME-WIGHTS-PATH>`;
 5. Run `python train.py`.
 
-## Model performance
-
-| Model | Params | FLOPs | CPU Speed | GPU Speed |
-| :---: | :----: | :---: | :-------: | :-------: |
-| srcnn | 1.55M  | 2.6G  |    9ms    |    7ms    |
-
 ## Result
 
 Source of original paper results: https://arxiv.org/pdf/1501.00092v3.pdf
 
 In the following table, the value in `()` indicates the result of the project, and `-` indicates no test.
 
-| Dataset | Scale |   PSNR   |   SSIM   |   MOS    |
-| :-----: | :---: | :------: | :------: | :------: |
-|  Set5   |   4   | -(**-**) | -(**-**) | -(**-**) |
-|  Set14  |   4   | -(**-**) | -(**-**) | -(**-**) |
-| BSDS100 |   4   | -(**-**) | -(**-**) | -(**-**) |
+| Dataset | Scale |     PSNR     |      SSIM      |
+| :-----: | :---: | :----------: | :------------: |
+|  Set5   |   2   | 36.66(36.25) | 0.9542(0.9537) |
+|  Set14  |   2   | 32.45(31.99) | 0.9067(0.9051) |
+|  Set5   |   3   | 32.75(32.51) | 0.9090(0.9085) |
+|  Set14  |   3   | 29.30(28.83) | 0.8215(0.8199) |
+|  Set5   |   4   | 30.49(30.12) | 0.8628(0.8592) |
+|  Set14  |   4   | 27.50(27.03) | 0.7513(0.7489) |
 
 Low resolution / Recovered High Resolution / Ground Truth
 <span align="center"><img src="assets/result.png"/></span>
