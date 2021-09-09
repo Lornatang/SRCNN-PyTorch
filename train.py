@@ -12,9 +12,9 @@
 # limitations under the License.
 # ============================================================================
 
-# ================================================ ===========================
+# ============================================================================
 # File description: Realize the model training function.
-# ================================================ ===========================
+# ============================================================================
 from torch.utils.data import DataLoader
 
 from config import *
@@ -23,7 +23,7 @@ from dataset import BaseDataset
 
 def train(train_dataloader, epoch) -> None:
     """Train the model.
-    
+
     Args:
         train_dataloader (torch.utils.data.DataLoader): The loader of the training data set.
         epoch (int): number of training cycles.
@@ -57,11 +57,11 @@ def train(train_dataloader, epoch) -> None:
 
 def validate(valid_dataloader, epoch) -> float:
     """Verify the model.
-    
+
     Args:
         valid_dataloader (torch.utils.data.DataLoader): loader for validating data set.
         epoch (int): number of training cycles.
-        
+
     Returns:
         PSNR value(float).
     """
