@@ -23,7 +23,7 @@ from torch import nn
 
 class SRCNN(nn.Module):
     r""" Constructing a super-resolution model of SRCNN
-    
+
     Args:
         mode (optional, str): Because the SRCNN model is inconsistent in the training and testing phases.
                               If set to `train`, the convolutional layer does not need to fill the edge of the image, otherwise it is filled.
