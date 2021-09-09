@@ -105,14 +105,14 @@ Source of original paper results: https://arxiv.org/pdf/1501.00092v3.pdf
 
 In the following table, the value in `()` indicates the result of the project, and `-` indicates no test.
 
-| Dataset | Scale |     PSNR     |      SSIM      |
-| :-----: | :---: | :----------: | :------------: |
-|  Set5   |   2   | 36.66(36.25) | 0.9542(0.9537) |
-|  Set14  |   2   | 32.45(31.99) | 0.9067(0.9051) |
-|  Set5   |   3   | 32.75(32.51) | 0.9090(0.9085) |
-|  Set14  |   3   | 29.30(28.83) | 0.8215(0.8199) |
-|  Set5   |   4   | 30.49(30.12) | 0.8628(0.8592) |
-|  Set14  |   4   | 27.50(27.03) | 0.7513(0.7489) |
+| Dataset | Scale |       PSNR       |        SSIM        |
+| :-----: | :---: | :--------------: | :----------------: |
+|  Set5   |   2   | 36.66(**36.25**) | 0.9542(**0.9537**) |
+|  Set14  |   2   | 32.45(**31.99**) | 0.9067(**0.9051**) |
+|  Set5   |   3   | 32.75(**32.51**) | 0.9090(**0.9085**) |
+|  Set14  |   3   | 29.30(**28.83**) | 0.8215(**0.8199**) |
+|  Set5   |   4   | 30.49(**30.12**) | 0.8628(**0.8592**) |
+|  Set14  |   4   | 27.50(**27.03**) | 0.7513(**0.7489**) |
 
 Low resolution / Recovered High Resolution / Ground Truth
 <span align="center"><img src="assets/result.png"/></span>
