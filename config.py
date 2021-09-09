@@ -25,62 +25,65 @@ from torch.utils.tensorboard import SummaryWriter
 
 from model import SRCNN
 
-# ==============================================================================
+# =============================================================================
 # General configuration
-# ==============================================================================
+# =============================================================================
 torch.manual_seed(0)             # Set random seed.
-upscale_factor = 2               # How many times the size of the high-resolution image in the data set is than the low-resolution image.
+upscale_factor = 4               # How many times the size of the high-resolution image in the data set is than the low-resolution image.
 device = torch.device("cuda:0")  # The first GPU is used for processing by default.
 cudnn.benchmark = True           # If the dimension or type of the input data of the network does not change much, turn it on, otherwise turn it off.
 mode = "train"                   # Run mode. Specific mode loads specific variables.
-exp_name = "exp001"              # Experiment name.
+exp_name = "exp000"              # Experiment name.
 
-# ==============================================================================
+# =============================================================================
 # Training configuration
-# ==============================================================================
+# =============================================================================
 if mode == "train":
-    # 1. Data set.
-    train_dir = "data/T91/train"  # The address of the training data set.
-    valid_dir = "data/T91/valid"  # Verify the address of the data set.
-    lr_image_size = 32            # Low-resolution image size in the training data set.
-    hr_image_size = 20            # High resolution image size in the training data set.
-    batch_size = 128              # Training data batch size.
+    # Dataset.
+    train_dir     = f"data/T91/X{upscale_factor}/train"  # The address of the training data set.
+    valid_dir     = f"data/T91/X{upscale_factor}/valid"  # Verify the address of the data set.
+    lr_image_size = 32                                   # Low-resolution image size in the training data set.
+    hr_image_size = 20                                   # High resolution image size in the training data set.
+    batch_size    = 128                                  # Training data batch size.
 
-    # 2. Model.
-    model = SRCNN(mode).to(device)  # Load the generative model.
+    # Model.
+    model         = SRCNN(mode).to(device)               # Load the generative model.
 
-    # 3. Interrupt training.
-    start_epoch = 0     # The initial number of iterations during network training. When set to 0, it means incremental training.
-    resume = False      # Set to `True` to continue training from the previous training progress.
-    resume_weight = ""  # Resume the model weight during training.
+    # Interrupt training.
+    start_epoch   = 0                                    # The initial number of iterations during network training. When set to 0, it means incremental training.
+    resume        = False                                # Set to `True` to continue training from the previous training progress.
+    resume_weight = ""                                   # Resume the model weight during training.
 
-    # 4. Total number of iterations.
-    epochs = 30000  # The total number of network training cycles.
+    # Total number of iterations.
+    epochs        = 30000                                # The total number of network training cycles.
 
-    # 5. Loss function.
-    criterion = nn.MSELoss().to(device)  # Pixel loss.
+    # Loss function.
+    criterion = nn.MSELoss().to(device)                  # Pixel loss.
 
-    # 6. Optimizer.
+    # Optimizer.
     optimizer = optim.SGD(params=[{"params": model.features.parameters(), "lr": 0.0001},
                                   {"params": model.map.parameters(), "lr": 0.0001},
                                   {"params": model.reconstruction.parameters(), "lr": 0.00001}],
-                          lr=0.0001)  # Learning rate during network training.
+                          lr=0.0001)                     # Learning rate during network training.
 
-    # 7. Training log.
+    # Training log.
     writer = SummaryWriter(os.path.join("samples", "logs", exp_name))
 
     # Additional variables.
     exp_dir1 = os.path.join("samples", exp_name)
     exp_dir2 = os.path.join("results", exp_name)
 
-# ==============================================================================
+# =============================================================================
 # Verify configuration
-# ==============================================================================
+# =============================================================================
 if mode == "validate":
     exp_dir = os.path.join("results", "test", exp_name)  # Additional variables.
+    model = SRCNN(mode).to(device)                       # Load the super-resolution model.
+    model_path = f"results/{exp_name}/best.pth"          # Model weight address.
+    sr_dir = f"results/test/{exp_name}"                  # Super resolution image address.
+    hr_dir = f"C:/dataset/Set5/GTmod12"                  # High resolution image address.
 
-    model = SRCNN(mode).to(device)               # Load the super-resolution model.
-    model_path = f"results/{exp_name}/best.pth"  # Model weight address.
-    lr_dir = f"data/T91/Set5/LRbicx4"            # Low resolution image address.
-    sr_dir = f"results/test/{exp_name}"          # Super resolution image address.
-    hr_dir = f"data/T91/Set5/GTmod12"            # High resolution image address.
+
+
+
+
