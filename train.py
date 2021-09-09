@@ -23,11 +23,10 @@ from dataset import BaseDataset
 
 def train(train_dataloader, epoch) -> None:
     """Train the model.
-
+    
     Args:
         train_dataloader (torch.utils.data.DataLoader): The loader of the training data set.
         epoch (int): number of training cycles.
-
     """
     # Calculate how many iterations there are under Epoch.
     batches = len(train_dataloader)
@@ -58,14 +57,13 @@ def train(train_dataloader, epoch) -> None:
 
 def validate(valid_dataloader, epoch) -> float:
     """Verify the model.
-
+    
     Args:
         valid_dataloader (torch.utils.data.DataLoader): loader for validating data set.
         epoch (int): number of training cycles.
-
+        
     Returns:
         PSNR value(float).
-
     """
     # Calculate how many iterations there are under Epoch.
     batches = len(valid_dataloader)
@@ -107,7 +105,7 @@ def main() -> None:
     valid_dataset = BaseDataset(valid_dir)
     train_dataloader = DataLoader(train_dataset, batch_size, True, pin_memory=True)
     valid_dataloader = DataLoader(valid_dataset, batch_size, False, pin_memory=True)
-    # Check whether the training progress of the last abnormal end is restored, for example, 
+    # Check whether the training progress of the last abnormal end is restored, for example,
     # the power is cut off in the middle of the training.
     if resume:
         print("Resuming...")
@@ -123,9 +121,9 @@ def main() -> None:
         # Determine whether the performance of the super-score model under Epoch is the best.
         is_best = psnr_value > best_psnr_value
         best_psnr_value = max(psnr_value, best_psnr_value)
-        # Save the weights of the super-score model under Epoch. If the performance of the super-score model 
+        # Save the weights of the super-score model under Epoch. If the performance of the super-score model
         # under Epoch is best, another model file named `best.pth` will be saved in the `results` directory.
-        torch.save(model.state_dict(), os.path.join(exp_dir1, f"epoch{epoch + 1}.pth"))
+        torch.save(model.state_dict(), os.path.join(exp_dir1, f"epoch_{epoch + 1}.pth"))
         if is_best:
             torch.save(model.state_dict(), os.path.join(exp_dir2, "best.pth"))
 
