@@ -70,23 +70,23 @@ def tensor2image(tensor: Tensor) -> np.ndarray:
     """
     return F.to_pil_image(tensor)
 
+
 def convert_rgb_to_ycbcr(image: np.ndarray):
     """Convert RGB format image to YCbCr format.
-
     Args:
        image (np.ndarray): RGB image data read by ``PIL.Image''.
     """
     if type(image) == np.ndarray:
         y = 16. + (64.738 * image[:, :, 0] + 129.057 * image[:, :, 1] + 25.064 * image[:, :, 2]) / 256.
-        cb = 128. + (-37.945 * image[:, :, 0]-74.494 * image[:, :, 1] + 112.439 * image[:, :, 2]) / 256.
-        cr = 128. + (112.439 * image[:, :, 0]-94.154 * image[:, :, 1]-18.285 * image[:, :, 2]) / 256.
+        cb = 128. + (-37.945 * image[:, :, 0] - 74.494 * image[:, :, 1] + 112.439 * image[:, :, 2]) / 256.
+        cr = 128. + (112.439 * image[:, :, 0] - 94.154 * image[:, :, 1] - 18.285 * image[:, :, 2]) / 256.
         return np.array([y, cb, cr]).transpose([1, 2, 0])
     elif type(image) == torch.Tensor:
         if len(image.shape) == 4:
             image = image.squeeze(0)
         y = 16. + (64.738 * image[0, :, :] + 129.057 * image[1, :, :] + 25.064 * image[2, :, :]) / 256.
-        cb = 128. + (-37.945 * image[0, :, :]-74.494 * image[1, :, :] + 112.439 * image[2, :, :]) / 256.
-        cr = 128. + (112.439 * image[0, :, :]-94.154 * image[1, :, :]-18.285 * image[2, :, :]) / 256.
+        cb = 128. + (-37.945 * image[0, :, :] - 74.494 * image[1, :, :] + 112.439 * image[2, :, :]) / 256.
+        cr = 128. + (112.439 * image[0, :, :] - 94.154 * image[1, :, :] - 18.285 * image[2, :, :]) / 256.
         return torch.cat([y, cb, cr], 0).permute(1, 2, 0)
     else:
         raise Exception("Unknown Type", type(image))
@@ -94,26 +94,27 @@ def convert_rgb_to_ycbcr(image: np.ndarray):
 
 def convert_ycbcr_to_rgb(image: np.ndarray):
     """Convert YCbCr format image to RGB format.
-
     Args:
        image (np.ndarray): YCbCr image data read by ``PIL.Image''.
     """
     if type(image) == np.ndarray:
-        r = 298.082 * image[:, :, 0] / 256. + 408.583 * image[:, :, 2] / 256.-222.921
-        g = 298.082 * image[:, :, 0] / 256.-100.291 * image[:, :, 1] / 256.-208.120 * image[:, :, 2] / 256. + 135.576
-        b = 298.082 * image[:, :, 0] / 256. + 516.412 * image[:, :, 1] / 256.-276.836
+        r = 298.082 * image[:, :, 0] / 256. + 408.583 * image[:, :, 2] / 256. - 222.921
+        g = 298.082 * image[:, :, 0] / 256. - 100.291 * image[:, :, 1] / 256. - 208.120 * image[:, :,
+                                                                                          2] / 256. + 135.576
+        b = 298.082 * image[:, :, 0] / 256. + 516.412 * image[:, :, 1] / 256. - 276.836
         return np.array([r, g, b]).transpose([1, 2, 0])
     elif type(image) == torch.Tensor:
         if len(image.shape) == 4:
             image = image.squeeze(0)
-        r = 298.082 * image[0, :, :] / 256. + 408.583 * image[2, :, :] / 256.-222.921
-        g = 298.082 * image[0, :, :] / 256.-100.291 * image[1, :, :] / 256.-208.120 * image[2, :, :] / 256. + 135.576
-        b = 298.082 * image[0, :, :] / 256. + 516.412 * image[1, :, :] / 256.-276.836
+        r = 298.082 * image[0, :, :] / 256. + 408.583 * image[2, :, :] / 256. - 222.921
+        g = 298.082 * image[0, :, :] / 256. - 100.291 * image[1, :, :] / 256. - 208.120 * image[2, :,
+                                                                                          :] / 256. + 135.576
+        b = 298.082 * image[0, :, :] / 256. + 516.412 * image[1, :, :] / 256. - 276.836
         return torch.cat([r, g, b], 0).permute(1, 2, 0)
     else:
         raise Exception("Unknown Type", type(image))
-        
-        
+
+
 def center_crop(lr: np.ndarray, hr: np.ndarray, image_size: int, upscale_factor: int) -> Tuple[np.ndarray, np.ndarray]:
     """Cut ``PIL.Image`` in the center area of the image.
     Args:
