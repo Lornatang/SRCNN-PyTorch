@@ -76,7 +76,7 @@ if mode == "train":
 # =============================================================================
 # Verify configuration
 # =============================================================================
-if mode == "validate":
+if mode == "valid":
     exp_dir = os.path.join("results", "test", exp_name)  # Additional variables.
     model = SRCNN(mode).to(device)                       # Load the super-resolution model.
     model_path = f"results/{exp_name}/best.pth"          # Model weight address.
