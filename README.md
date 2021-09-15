@@ -67,24 +67,24 @@ Bsd100 dataset:
 
 Modify the contents of the file as follows.
 
-1. `config.py` line 32 `mode="train"` change to `mode="valid"`.
-2. `config.py` line 81 `model.load_state_dict(torch.load(f"results/{exp_name}/g-best.pth", map_location=device))` change to `model.load_state_dict(torch.load("<YOUR-WEIGHTS-PATH>", map_location=device))`.
-3. Run `python validate.py`.
+- `config.py` line 32 `mode="train"` change to `mode="valid"`.
+- `config.py` line 80 `model.load_state_dict(torch.load(f"results/{exp_name}/g-best.pth", map_location=device))` change to `model.load_state_dict(torch.load("<YOUR-WEIGHTS-PATH>", map_location=device))`.
+- Run `python validate.py`.
 
 ## Train
 
 Modify the contents of the file as follows.
 
-1. `config.py` line 32 `mode="valid"` change to `mode="train"`.
-2. Run `python train.py`.
+- `config.py` line 32 `mode="valid"` change to `mode="train"`.
+- Run `python train.py`.
 
 If you want to load weights that you've trained before, modify the contents of the file as follows.
 
-1. `config.py` line 32 `mode="valid"` change to `mode="train"`.
-2. `config.py` line 49 `start_epoch=0` change to `start_epoch=<RESUME-EPOCH>`.
-3. `config.py` line 50 `resume=False` change to `resume=True`.
-4. `config.py` line 51 `resume_weight=""` change to `resume_weight="<YOUR-RESUME-WIGHTS-PATH>"`.
-5. Run `python train.py`.
+- `config.py` line 32 `mode="valid"` change to `mode="train"`.
+- `config.py` line 48 `start_epoch=0` change to `start_epoch=<RESUME-EPOCH>`.
+- `config.py` line 59 `resume=False` change to `resume=True`.
+- `config.py` line 50 `resume_weight=""` change to `resume_weight="<YOUR-RESUME-WIGHTS-PATH>"`.
+- Run `python train.py`.
 
 ## Result
 
