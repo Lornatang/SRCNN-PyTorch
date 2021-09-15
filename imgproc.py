@@ -11,10 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-
-# ==============================================================================
-# File description: Realize the function of processing the data set before training.
-# ==============================================================================
+"""Realize the function of processing the dataset before training."""
 import random
 from typing import Tuple
 
@@ -99,16 +96,14 @@ def convert_ycbcr_to_rgb(image: np.ndarray):
     """
     if type(image) == np.ndarray:
         r = 298.082 * image[:, :, 0] / 256. + 408.583 * image[:, :, 2] / 256. - 222.921
-        g = 298.082 * image[:, :, 0] / 256. - 100.291 * image[:, :, 1] / 256. - 208.120 * image[:, :,
-                                                                                          2] / 256. + 135.576
+        g = 298.082 * image[:, :, 0] / 256. - 100.291 * image[:, :, 1] / 256. - 208.120 * image[:, :, 2] / 256. + 135.576
         b = 298.082 * image[:, :, 0] / 256. + 516.412 * image[:, :, 1] / 256. - 276.836
         return np.array([r, g, b]).transpose([1, 2, 0])
     elif type(image) == torch.Tensor:
         if len(image.shape) == 4:
             image = image.squeeze(0)
         r = 298.082 * image[0, :, :] / 256. + 408.583 * image[2, :, :] / 256. - 222.921
-        g = 298.082 * image[0, :, :] / 256. - 100.291 * image[1, :, :] / 256. - 208.120 * image[2, :,
-                                                                                          :] / 256. + 135.576
+        g = 298.082 * image[0, :, :] / 256. - 100.291 * image[1, :, :] / 256. - 208.120 * image[2, :, :] / 256. + 135.576
         b = 298.082 * image[0, :, :] / 256. + 516.412 * image[1, :, :] / 256. - 276.836
         return torch.cat([r, g, b], 0).permute(1, 2, 0)
     else:
