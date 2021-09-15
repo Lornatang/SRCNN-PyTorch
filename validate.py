@@ -11,10 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-
-# ==============================================================================
-# File description: Realize the verification function after model training.
-# ==============================================================================
+"""File description: Realize the verification function after model training."""
 import shutil
 import warnings
 from typing import Tuple
@@ -159,9 +156,6 @@ def main() -> None:
         shutil.rmtree(exp_dir)
     os.makedirs(exp_dir)
 
-    # Load model weights.
-    state_dict = torch.load(model_path, map_location=device)
-    model.load_state_dict(state_dict)
     # Start the verification mode of the model.
     model.eval()
     # Turn on half-precision inference.
