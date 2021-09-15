@@ -11,8 +11,6 @@ of [Image Super-Resolution Using Deep Convolutional Networks](https://arxiv.org/
     - [Overview](#overview)
     - [Table of contents](#table-of-contents)
     - [About Image Super-Resolution Using Deep Convolutional Networks](#about-image-super-resolution-using-deep-convolutional-networks)
-    - [Installation](#installation)
-        - [Clone and install requirements](#clone-and-install-requirements)
     - [Download weights](#download-weights)
     - [Download datasets](#download-datasets)
         - [Download train dataset](#download-train-dataset)
@@ -35,16 +33,6 @@ handle each component separately, our method jointly optimizes all layers. Our d
 demonstrates state-of-the-art restoration quality, and achieves fast speed for practical on-line usage. We explore
 different network structures and parameter settings to achieve trade-offs between performance and speed. Moreover, we
 extend our network to cope with three color channels simultaneously, and show better overall reconstruction quality.
-
-## Installation
-
-### Clone and install requirements
-
-```bash
-git clone https://github.com/Lornatang/SRCNN-PyTorch.git
-cd SRCNN-PyTorch/
-pip install -r requirements.txt
-```
 
 ## Download weights
 
@@ -79,24 +67,23 @@ Bsd100 dataset:
 
 Modify the contents of the file as follows.
 
-1. `config.py` line 35 `mode = "train"` change to `mode = "validate"`;
-2. `config.py` line 83 `model_path = f"results/{exp_name}/best.pth"` change to `model_path = f"<YOUR-WEIGHTS-PATH>.pth"`
-   ;
+1. `config.py` line 32 `mode="train"` change to `mode="valid"`.
+2. `config.py` line 81 `model.load_state_dict(torch.load(f"results/{exp_name}/g-best.pth", map_location=device))` change to `model.load_state_dict(torch.load("<YOUR-WEIGHTS-PATH>", map_location=device))`.
 3. Run `python validate.py`.
 
 ## Train
 
 Modify the contents of the file as follows.
 
-1. `config.py` line 35 `mode = "validate"` change to `mode = "train"`;
+1. `config.py` line 32 `mode="valid"` change to `mode="train"`.
 2. Run `python train.py`.
 
 If you want to load weights that you've trained before, modify the contents of the file as follows.
 
-1. `config.py` line 35 `mode = "validate"` change to `mode = "train"`;
-2. `config.py` line 53 `start_epoch = 0` change to `start_epoch = XXX`;
-3. `config.py` line 54 `resume = False` change to `resume = True`;
-4. `config.py` line 55 `resume_weight = ""` change to `resume_weight = <YOUR-RESUME-WIGHTS-PATH>`;
+1. `config.py` line 32 `mode="valid"` change to `mode="train"`.
+2. `config.py` line 49 `start_epoch=0` change to `start_epoch=<RESUME-EPOCH>`.
+3. `config.py` line 50 `resume=False` change to `resume=True`.
+4. `config.py` line 51 `resume_weight=""` change to `resume_weight="<YOUR-RESUME-WIGHTS-PATH>"`.
 5. Run `python train.py`.
 
 ## Result
@@ -135,7 +122,7 @@ extend our network to cope with three color channels simultaneously, and show be
 
 [[Paper]](https://arxiv.org/pdf/1501.00092) [[Author's implements(Caffe)]](http://mmlab.ie.cuhk.edu.hk/projects/SRCNN/SRCNN_train.zip)
 
-```
+```bibtex
 @misc{dong2014image,
     title={Image Super-Resolution Using Deep Convolutional Networks},
     author={Chao Dong and Chen Change Loy and Kaiming He and Xiaoou Tang},
