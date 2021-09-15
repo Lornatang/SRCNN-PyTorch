@@ -218,7 +218,7 @@ def random_adjust_brightness(lr: np.ndarray, hr: np.ndarray) -> Tuple[np.ndarray
         Low-resolution image and high-resolution image with randomly adjusted brightness.
     """
     # Randomly adjust the brightness gain range.
-    factor = random.uniform(0.25, 4)
+    factor = random.uniform(0.5, 2)
     lr = F.adjust_brightness(lr, factor)
     hr = F.adjust_brightness(hr, factor)
 
@@ -234,7 +234,7 @@ def random_adjust_contrast(lr: np.ndarray, hr: np.ndarray) -> Tuple[np.ndarray, 
         Low-resolution image and high-resolution image with randomly adjusted contrast.
     """
     # Randomly adjust the contrast gain range.
-    factor = random.uniform(0.25, 4)
+    factor = random.uniform(0.5, 2)
     lr = F.adjust_contrast(lr, factor)
     hr = F.adjust_contrast(hr, factor)
 
