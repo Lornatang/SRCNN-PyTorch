@@ -19,25 +19,11 @@ from torch import nn
 
 
 class SRCNN(nn.Module):
-    """
-
-    Args:
-        mode (optional, str): Because the SRCNN model is inconsistent in the training and testing phases.
-                              If set to `train`, the convolutional layer does not need to fill the edge of the image, otherwise it is filled.
-                              (Default: `train`)
-    """
-
-    def __init__(self, mode: str = "train") -> None:
+    def __init__(self) -> None:
         super(SRCNN, self).__init__()
-        # The model does not need to fill the edges during the training process, and needs to fill the edges during the testing phase.
-        if mode == "train":
-            padding = False
-        else:
-            padding = True
-
         # Feature extraction layer.
         self.features = nn.Sequential(
-            nn.Conv2d(1, 64, (9, 9), (1, 1), (0, 0) if not padding else (4, 4)),
+            nn.Conv2d(1, 64, (9, 9), (1, 1), (4, 4)),
             nn.ReLU(True)
         )
 
@@ -48,7 +34,7 @@ class SRCNN(nn.Module):
         )
 
         # Rebuild the layer.
-        self.reconstruction = nn.Conv2d(32, 1, (5, 5), (1, 1), (0, 0) if not padding else (2, 2))
+        self.reconstruction = nn.Conv2d(32, 1, (5, 5), (1, 1), (2, 2))
 
         # Initialize model weights.
         self._initialize_weights()
