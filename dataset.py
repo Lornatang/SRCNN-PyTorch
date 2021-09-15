@@ -11,10 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-
-# ==============================================================================
-# File description: Realize the function of data set preparation.
-# ==============================================================================
+"""Realize the function of dataset preparation."""
 import os
 from typing import Tuple
 
