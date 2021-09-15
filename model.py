@@ -11,10 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-
-# ============================================================================
-# File description: Realize the model definition function.
-# ============================================================================
+"""Realize the model definition function."""
 from math import sqrt
 
 from torch import Tensor
@@ -22,7 +19,7 @@ from torch import nn
 
 
 class SRCNN(nn.Module):
-    r""" Constructing a super-resolution model of SRCNN
+    """
 
     Args:
         mode (optional, str): Because the SRCNN model is inconsistent in the training and testing phases.
@@ -56,6 +53,17 @@ class SRCNN(nn.Module):
         # Initialize model weights.
         self._initialize_weights()
 
+    def forward(self, x: Tensor) -> Tensor:
+        return self._forward_impl(x)
+
+    # Support torch.script function.
+    def _forward_impl(self, x: Tensor) -> Tensor:
+        out = self.features(x)
+        out = self.map(out)
+        out = self.reconstruction(out)
+
+        return out
+
     # The filter weight of each layer is a Gaussian distribution with zero mean and standard deviation initialized by random extraction 0.001 (deviation is 0).
     def _initialize_weights(self) -> None:
         for m in self.features or self.map:
@@ -67,14 +75,3 @@ class SRCNN(nn.Module):
 
         nn.init.normal_(self.reconstruction.weight.data, mean=0.0, std=0.001)
         nn.init.zeros_(self.reconstruction.bias.data)
-
-    # The tracking operator in the PyTorch model must be written like this.
-    def _forward_impl(self, x: Tensor) -> Tensor:
-        out = self.features(x)
-        out = self.map(out)
-        out = self.reconstruction(out)
-
-        return out
-
-    def forward(self, x: Tensor) -> Tensor:
-        return self._forward_impl(x)
