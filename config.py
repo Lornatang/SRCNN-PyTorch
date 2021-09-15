@@ -39,11 +39,10 @@ if mode == "train":
     # Dataset.
     train_dir = f"data/T91/X{upscale_factor}/train"
     valid_dir = f"data/T91/X{upscale_factor}/valid"
-    image_size = 32
     batch_size = 128
 
     # Model.
-    model = SRCNN(mode).to(device)
+    model = SRCNN().to(device)
 
     # Resuming training.
     start_epoch = 0
@@ -51,7 +50,7 @@ if mode == "train":
     resume_weight = ""
 
     # Total number of epochs.
-    epochs = 50000
+    epochs = 5155
 
     # Loss function.
     criterion = nn.MSELoss().to(device)
@@ -77,7 +76,7 @@ if mode == "valid":
     hr_dir = f"data/Set5/GTmod12"
 
     # Load sr model.
-    model = SRCNN(mode).to(device)
+    model = SRCNN().to(device)
     model.load_state_dict(torch.load(f"results/{exp_name}/g-best.pth", map_location=device))
 
     # Additional variables.
