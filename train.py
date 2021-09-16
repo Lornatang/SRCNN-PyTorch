@@ -19,12 +19,13 @@ from config import *
 from dataset import BaseDataset
 
 
-def train(train_dataloader, epoch) -> None:
+def train(train_dataloader, epoch, scaler) -> None:
     """Training a super-resolution model based on the MSE loss function.
 
     Args:
         train_dataloader (torch.utils.data.DataLoader): The loader of the training dataset.
         epoch (int): number of training cycles.
+        scaler (amp.GradScaler): Gradient scaler.
     """
     # The number of training steps per cycle.
     batches = len(train_dataloader)
@@ -40,8 +41,9 @@ def train(train_dataloader, epoch) -> None:
         with amp.autocast():
             sr = model(lr)
             loss = criterion(sr, hr)
-        loss.backward()
-        optimizer.step()
+        scaler.scale(loss).backward()
+        scaler.step(optimizer)
+        scaler.update()
         # Write the loss during training to Tensorboard.
         iters = index + epoch * batches + 1
         writer.add_scalar("Train/MSE_Loss", loss.item(), iters)
@@ -104,12 +106,15 @@ def main() -> None:
         print("Resuming...")
         model.load_state_dict(torch.load(resume_weight, map_location=device))
 
+    # Create GradScalar function.
+    scaler = amp.GradScaler()
+
     # Initialize the evaluation index.
     best_mse_metrics = 0.0
 
     # Train the super-resolution model based on the MSE loss function.
     for epoch in range(start_epoch, epochs):
-        train(train_dataloader, epoch)
+        train(train_dataloader, epoch, scaler)
         psnr_value = validate(valid_dataloader, epoch)
         # Automatically search and save the optimal model weight.
         is_best = psnr_value > best_mse_metrics
