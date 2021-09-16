@@ -26,7 +26,7 @@ from model import SRCNN
 # General configuration
 # ==============================================================================
 torch.manual_seed(0)
-upscale_factor = 4
+upscale_factor = 2
 device = torch.device("cuda:0")
 cudnn.benchmark = True
 mode = "train"
