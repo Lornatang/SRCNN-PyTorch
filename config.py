@@ -56,8 +56,8 @@ if mode == "train":
     criterion = nn.MSELoss().to(device)
 
     # Optimizer.
-    optimizer = optim.SGD([{"params": model.features.parameters(), "lr": 0.0001},
-                           {"params": model.map.parameters(), "lr": 0.0001},
+    optimizer = optim.SGD([{"params": model.features.parameters()},
+                           {"params": model.map.parameters()},
                            {"params": model.reconstruction.parameters(), "lr": 0.00001}], 0.0001)
 
     # Training log.
@@ -77,7 +77,7 @@ if mode == "valid":
 
     # Load sr model.
     model = SRCNN().to(device)
-    model.load_state_dict(torch.load(f"results/{exp_name}/g-best.pth", map_location=device))
+    model.load_state_dict(torch.load(f"results/{exp_name}/best.pth", map_location=device))
 
     # Additional variables.
     exp_dir = os.path.join("results", "test", exp_name)
