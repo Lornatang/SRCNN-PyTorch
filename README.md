@@ -68,7 +68,7 @@ Bsd100 dataset:
 Modify the contents of the file as follows.
 
 - `config.py` line 32 `mode="train"` change to `mode="valid"`.
-- `config.py` line 80 `model.load_state_dict(torch.load(f"results/{exp_name}/g-best.pth", map_location=device))` change to `model.load_state_dict(torch.load("<YOUR-WEIGHTS-PATH>", map_location=device))`.
+- `config.py` line 80 `model.load_state_dict(torch.load(f"results/{exp_name}/best.pth", map_location=device))` change to `model.load_state_dict(torch.load("<YOUR-WEIGHTS-PATH>", map_location=device))`.
 - Run `python validate.py`.
 
 ## Train
