@@ -32,10 +32,10 @@ __all__ = [
 
 def normalize(image: np.ndarray) -> np.ndarray:
     """Normalize the ``OpenCV.imread`` or ``skimage.io.imread`` data.
-    
+
     Args:
         image (np.ndarray): The image data read by ``OpenCV.imread`` or ``skimage.io.imread``.
-        
+
     Returns:
         np.ndarray: normalized image data. Data range [0, 1].
     """
@@ -44,10 +44,10 @@ def normalize(image: np.ndarray) -> np.ndarray:
 
 def unnormalize(image: np.ndarray) -> np.ndarray:
     """Un-normalize the ``OpenCV.imread`` or ``skimage.io.imread`` data.
-    
+
     Args:
         image (np.ndarray): The image data read by ``OpenCV.imread`` or ``skimage.io.imread``.
-        
+
     Returns:
         np.ndarray: Denormalized image data. Data range [0, 255].
     """
@@ -56,10 +56,10 @@ def unnormalize(image: np.ndarray) -> np.ndarray:
 
 def image2tensor(image: np.ndarray) -> Tensor:
     """Convert ``PIL.Image`` to Tensor.
-    
+
     Args:
         image (np.ndarray): The image data read by ``PIL.Image``.
-        
+
     Returns:
         Tensor: normalized image data.
     """
@@ -68,7 +68,7 @@ def image2tensor(image: np.ndarray) -> Tensor:
 
 def tensor2image(tensor: Tensor) -> np.ndarray:
     """ Converts ``torch.Tensor`` to ``PIL.Image``.
-    
+
     Args:
         tensor (torch.Tensor): The image that needs to be converted to ``PIL.Image``.
     """
@@ -77,10 +77,10 @@ def tensor2image(tensor: Tensor) -> np.ndarray:
 
 def convert_rgb_to_ycbcr(image: np.ndarray):
     """Convert RGB format image to YCbCr format.
-    
+
     Args:
        image (np.ndarray): RGB image data read by ``PIL.Image''.
-       
+
     Returns:
         np.ndarray: YCbCr image.
     """
@@ -102,10 +102,10 @@ def convert_rgb_to_ycbcr(image: np.ndarray):
 
 def convert_ycbcr_to_rgb(image: np.ndarray):
     """Convert YCbCr format image to RGB format.
-    
+
     Args:
        image (np.ndarray): YCbCr image data read by ``PIL.Image''.
-       
+
     Returns:
         np.ndarray: RGB image.
     """
@@ -127,13 +127,13 @@ def convert_ycbcr_to_rgb(image: np.ndarray):
 
 def center_crop(lr: np.ndarray, hr: np.ndarray, image_size: int, upscale_factor: int) -> Tuple[np.ndarray, np.ndarray]:
     """Cut ``PIL.Image`` in the center area of the image.
-    
+
     Args:
         lr (np.ndarray): Low-resolution image data read by ``PIL.Image``.
         hr (np.ndarray): High-resolution image data read by ``PIL.Image``.
         image_size (int): The size of the captured image area. It should be the size of the high-resolution image.
         upscale_factor (int): magnification factor.
-        
+
     Returns:
         Randomly cropped low-resolution images and high-resolution images.
     """
@@ -155,13 +155,13 @@ def center_crop(lr: np.ndarray, hr: np.ndarray, image_size: int, upscale_factor:
 
 def random_crop(lr: np.ndarray, hr: np.ndarray, image_size: int, upscale_factor: int) -> Tuple[np.ndarray, np.ndarray]:
     """Will ``PIL.Image`` randomly capture the specified area of the image.
-    
+
     Args:
         lr (np.ndarray): Low-resolution image data read by ``PIL.Image``.
         hr (np.ndarray): High-resolution image data read by ``PIL.Image``.
         image_size (int): The size of the captured image area. It should be the size of the high-resolution image.
         upscale_factor (int): magnification factor.
-        
+
     Returns:
         Randomly cropped low-resolution images and high-resolution images.
     """
@@ -182,12 +182,12 @@ def random_crop(lr: np.ndarray, hr: np.ndarray, image_size: int, upscale_factor:
 
 def random_rotate(lr: np.ndarray, hr: np.ndarray, angle: int) -> Tuple[np.ndarray, np.ndarray]:
     """Will ``PIL.Image`` randomly rotate the image.
-    
+
     Args:
         lr (np.ndarray): Low-resolution image data read by ``PIL.Image``.
         hr (np.ndarray): High-resolution image data read by ``PIL.Image``.
         angle (int): rotation angle, clockwise and counterclockwise rotation.
-        
+
     Returns:
         Randomly rotated low-resolution images and high-resolution images.
     """
@@ -200,12 +200,12 @@ def random_rotate(lr: np.ndarray, hr: np.ndarray, angle: int) -> Tuple[np.ndarra
 
 def random_horizontally_flip(lr: np.ndarray, hr: np.ndarray, p=0.5) -> Tuple[np.ndarray, np.ndarray]:
     """Flip the ``PIL.Image`` image horizontally randomly.
-    
+
     Args:
         lr (np.ndarray): Low-resolution image data read by ``PIL.Image``.
         hr (np.ndarray): High-resolution image data read by ``PIL.Image``.
         p (optional, float): rollover probability. (Default: 0.5)
-        
+
     Returns:
         Low-resolution image and high-resolution image after random horizontal flip.
     """
@@ -218,12 +218,12 @@ def random_horizontally_flip(lr: np.ndarray, hr: np.ndarray, p=0.5) -> Tuple[np.
 
 def random_vertically_flip(lr: np.ndarray, hr: np.ndarray, p=0.5) -> Tuple[np.ndarray, np.ndarray]:
     """Turn the ``PIL.Image`` image upside down randomly.
-    
+
     Args:
         lr (np.ndarray): Low-resolution image data read by ``PIL.Image``.
         hr (np.ndarray): High-resolution image data read by ``PIL.Image``.
         p (optional, float): rollover probability. (Default: 0.5)
-        
+
     Returns:
         Randomly rotated up and down low-resolution images and high-resolution images.
     """
@@ -236,11 +236,11 @@ def random_vertically_flip(lr: np.ndarray, hr: np.ndarray, p=0.5) -> Tuple[np.nd
 
 def random_adjust_brightness(lr: np.ndarray, hr: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     """Set ``PIL.Image`` to randomly adjust the image brightness.
-    
+
     Args:
         lr (np.ndarray): Low-resolution image data read by ``PIL.Image``.
         hr (np.ndarray): High-resolution image data read by ``PIL.Image``.
-        
+
     Returns:
         Low-resolution image and high-resolution image with randomly adjusted brightness.
     """
@@ -254,11 +254,11 @@ def random_adjust_brightness(lr: np.ndarray, hr: np.ndarray) -> Tuple[np.ndarray
 
 def random_adjust_contrast(lr: np.ndarray, hr: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     """Set ``PIL.Image`` to randomly adjust the image contrast.
-    
+
     Args:
         lr (np.ndarray): Low-resolution image data read by ``PIL.Image``.
         hr (np.ndarray): High-resolution image data read by ``PIL.Image``.
-        
+
     Returns:
         Low-resolution image and high-resolution image with randomly adjusted contrast.
     """
