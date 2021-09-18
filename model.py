@@ -19,22 +19,27 @@ from torch import nn
 
 
 class SRCNN(nn.Module):
-    def __init__(self) -> None:
+    def __init__(self, mode: str) -> None:
         super(SRCNN, self).__init__()
+        if mode == "train":
+            padding = False
+        else:
+            padding = True
+
         # Feature extraction layer.
         self.features = nn.Sequential(
-            nn.Conv2d(1, 64, (9, 9), (1, 1), (4, 4)),
+            nn.Conv2d(1, 64, (9, 9), (1, 1), (4, 4) if padding else (0, 0)),
             nn.ReLU(True)
         )
 
         # Non-linear mapping layer.
         self.map = nn.Sequential(
-            nn.Conv2d(64, 32, (5, 5), (1, 1), (2, 2)),
+            nn.Conv2d(64, 32, (1, 1), (1, 1), (0, 0)),
             nn.ReLU(True)
         )
 
         # Rebuild the layer.
-        self.reconstruction = nn.Conv2d(32, 1, (5, 5), (1, 1), (2, 2))
+        self.reconstruction = nn.Conv2d(32, 1, (5, 5), (1, 1), (2, 2) if padding else (0, 0))
 
         # Initialize model weights.
         self._initialize_weights()
@@ -52,7 +57,7 @@ class SRCNN(nn.Module):
 
     # The filter weight of each layer is a Gaussian distribution with zero mean and standard deviation initialized by random extraction 0.001 (deviation is 0).
     def _initialize_weights(self) -> None:
-        for m in self.features or self.map:
+        for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 mean = 0.0
                 std = sqrt(2 / (m.out_channels * m.weight.data[0][0].numel()))
