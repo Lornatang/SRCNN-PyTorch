@@ -1,8 +1,10 @@
 Pillow
+opencv-python
+lmdb
+tqdm
 torch
 torchvision
 scikit-image
 numpy
 matplotlib
-opencv-python
 setuptools
