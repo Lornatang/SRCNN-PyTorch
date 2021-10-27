@@ -12,16 +12,17 @@
 # limitations under the License.
 # ==============================================================================
 """Realize the function of dataset preparation."""
+import io
 import os
-from typing import Tuple
 
+import lmdb
 from PIL import Image
 from torch import Tensor
 from torch.utils.data import Dataset
 
-from imgproc import image2tensor
+import imgproc
 
-__all__ = ["BaseDataset"]
+__all__ = ["BaseDataset", "LMDBDataset"]
 
 
 class BaseDataset(Dataset):
@@ -29,6 +30,7 @@ class BaseDataset(Dataset):
 
     Args:
         dataroot (str): training data set address.
+
     """
 
     def __init__(self, dataroot: str) -> None:
@@ -41,19 +43,76 @@ class BaseDataset(Dataset):
         self.lr_filenames = [os.path.join(lr_dir_path, x) for x in self.filenames]
         self.hr_filenames = [os.path.join(hr_dir_path, x) for x in self.filenames]
 
-    def __getitem__(self, index: int) -> Tuple[Tensor, Tensor]:
-        lr = Image.open(self.lr_filenames[index]).convert("YCbCr")
-        hr = Image.open(self.hr_filenames[index]).convert("YCbCr")
+    def __getitem__(self, index: int) -> [Tensor, Tensor]:
+        lr_image_data = Image.open(self.lr_filenames[index]).convert("YCbCr")
+        hr_image_data = Image.open(self.hr_filenames[index]).convert("YCbCr")
 
         # Only extract the image data of the Y channel.
-        lr, _, _ = lr.split()
-        hr, _, _ = hr.split()
+        lr_image_y_data, _, _ = lr_image_data.split()
+        hr_image_y_data, _, _ = hr_image_data.split()
 
         # `PIL.Image` image data is converted to `Tensor` format data.
-        lr = image2tensor(lr)
-        hr = image2tensor(hr)
+        lr_tensor_data = imgproc.image2tensor(lr_image_data, False)
+        hr_tensor_data = imgproc.image2tensor(hr_image_data, False)
 
-        return lr, hr
+        return lr_tensor_data, hr_tensor_data
 
     def __len__(self) -> int:
         return len(self.filenames)
+
+
+class LMDBDataset(Dataset):
+    """Load the data set as a data set in the form of LMDB.
+
+    Attributes:
+        lr_datasets (list): Low-resolution image data in the dataset
+        hr_datasets (list): High-resolution image data in the dataset
+
+    """
+
+    def __init__(self, lr_lmdb_path, hr_lmdb_path) -> None:
+        super(LMDBDataset, self).__init__()
+        # Create low/high resolution image array
+        self.lr_datasets = []
+        self.hr_datasets = []
+
+        # Initialize the LMDB database file address
+        self.lr_lmdb_path = lr_lmdb_path
+        self.hr_lmdb_path = hr_lmdb_path
+
+        # Write image data in LMDB database to memory
+        self.read_lmdb_dataset()
+
+    def __getitem__(self, batch_index: int) -> [Tensor, Tensor]:
+        # Read a batch of image data
+        lr_image_data = self.lr_datasets[batch_index]
+        hr_image_data = self.hr_datasets[batch_index]
+
+        # Only extract the image data of the Y channel.
+        lr_image_y_data, _, _ = lr_image_data.convert("YCbCr").split()
+        hr_image_y_data, _, _ = hr_image_data.convert("YCbCr").split()
+
+        # Convert image data into Tensor stream format (PyTorch).
+        # Note: The range of input and output is between [0, 1]
+        lr_tensor_data = imgproc.image2tensor(lr_image_y_data, False)
+        hr_tensor_data = imgproc.image2tensor(hr_image_y_data, False)
+
+        return lr_tensor_data, hr_tensor_data
+
+    def __len__(self) -> int:
+        return len(self.hr_datasets)
+
+    def read_lmdb_dataset(self) -> [list, list]:
+        # Open two LMDB database writing environments to read low/high image data
+        lr_lmdb_env = lmdb.open(self.lr_lmdb_path)
+        hr_lmdb_env = lmdb.open(self.hr_lmdb_path)
+
+        # Write the image data in the low-resolution LMDB data set to the memory
+        for _, image_bytes in lr_lmdb_env.begin().cursor():
+            image = Image.open(io.BytesIO(image_bytes))
+            self.lr_datasets.append(image)
+
+        # Write the image data in the high-resolution LMDB data set to the memory
+        for _, image_bytes in hr_lmdb_env.begin().cursor():
+            image = Image.open(io.BytesIO(image_bytes))
+            self.hr_datasets.append(image)
