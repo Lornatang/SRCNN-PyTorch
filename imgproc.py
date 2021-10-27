@@ -13,12 +13,11 @@
 # ==============================================================================
 """Realize the function of processing the dataset before training."""
 import random
-from typing import Tuple
 
 import numpy as np
 import torch
-import torchvision.transforms.functional as F
-from torch import Tensor
+from PIL import Image
+from torchvision.transforms import functional as F
 
 __all__ = [
     "normalize", "unnormalize",
@@ -38,6 +37,7 @@ def normalize(image: np.ndarray) -> np.ndarray:
 
     Returns:
         np.ndarray: normalized image data. Data range [0, 1].
+
     """
     return image.astype(np.float64) / 255.0
 
@@ -50,39 +50,64 @@ def unnormalize(image: np.ndarray) -> np.ndarray:
 
     Returns:
         np.ndarray: Denormalized image data. Data range [0, 255].
+
     """
     return image.astype(np.float64) * 255.0
 
 
-def image2tensor(image: np.ndarray) -> Tensor:
+def image2tensor(image: np.ndarray, range_norm: bool) -> torch.Tensor:
     """Convert ``PIL.Image`` to Tensor.
 
     Args:
-        image (np.ndarray): The image data read by ``PIL.Image``.
+        image (np.ndarray): The image data read by ``PIL.Image``
+        range_norm (bool): Scale [0, 1] data to between [-1, 1]
 
     Returns:
-        Tensor: normalized image data.
+        torch.Tensor: normalized image data.
+
+    Examples:
+        >>> image = cv2.imread("image.bmp")
+        >>> tensor_image = image2tensor(image)
+
     """
-    return F.to_tensor(image)
+    tensor = F.to_tensor(image)
+    if range_norm:
+        tensor = (tensor * 2.) - 1.
+
+    return tensor
 
 
-def tensor2image(tensor: Tensor) -> np.ndarray:
-    """ Converts ``torch.Tensor`` to ``PIL.Image``.
+def tensor2image(tensor: torch.Tensor, range_norm: bool) -> np.ndarray:
+    """Converts ``torch.Tensor`` to ``PIL.Image``.
 
     Args:
-        tensor (torch.Tensor): The image that needs to be converted to ``PIL.Image``.
+        tensor (torch.Tensor): The image that needs to be converted to ``PIL.Image``
+        range_norm (bool): Scale [-1, 1] data to between [0, 1]
+
+    Returns:
+        np.ndarray: RGB image array data.
+
+    Examples:
+        >>> tensor = torch.randn([1, 3, 128, 128])
+        >>> image = tensor2image(tensor, range_norm=True)
+
     """
-    return F.to_pil_image(tensor)
+    if range_norm:
+        tensor = tensor.add_(1.0).div_(2.0)
+    image = Image.fromarray(tensor.squeeze(0).mul_(255).clamp_(0, 255).permute(1, 2, 0).to("cpu", torch.uint8).numpy())
+
+    return image
 
 
-def convert_rgb_to_ycbcr(image: np.ndarray):
-    """Convert RGB format image to YCbCr format.
+def convert_rgb_to_ycbcr(image: np.ndarray or torch.Tensor) -> torch.Tensor:
+    """Convert RGB image or tensor image data to YCbCr format.
 
     Args:
        image (np.ndarray): RGB image data read by ``PIL.Image''.
 
     Returns:
-        np.ndarray: YCbCr image.
+        np.ndarray or torch.Tensor: YCbCr image array data.
+
     """
     if type(image) == np.ndarray:
         y = 16. + (64.738 * image[:, :, 0] + 129.057 * image[:, :, 1] + 25.064 * image[:, :, 2]) / 256.
@@ -108,6 +133,7 @@ def convert_ycbcr_to_rgb(image: np.ndarray):
 
     Returns:
         np.ndarray: RGB image.
+
     """
     if type(image) == np.ndarray:
         r = 298.082 * image[:, :, 0] / 256. + 408.583 * image[:, :, 2] / 256. - 222.921
@@ -125,7 +151,7 @@ def convert_ycbcr_to_rgb(image: np.ndarray):
         raise Exception("Unknown Type", type(image))
 
 
-def center_crop(lr: np.ndarray, hr: np.ndarray, image_size: int, upscale_factor: int) -> Tuple[np.ndarray, np.ndarray]:
+def center_crop(lr: np.ndarray, hr: np.ndarray, image_size: int, upscale_factor: int) -> list[np.ndarray, np.ndarray]:
     """Cut ``PIL.Image`` in the center area of the image.
 
     Args:
@@ -136,6 +162,7 @@ def center_crop(lr: np.ndarray, hr: np.ndarray, image_size: int, upscale_factor:
 
     Returns:
         Randomly cropped low-resolution images and high-resolution images.
+
     """
     w, h = hr.size
 
@@ -153,7 +180,7 @@ def center_crop(lr: np.ndarray, hr: np.ndarray, image_size: int, upscale_factor:
     return lr, hr
 
 
-def random_crop(lr: np.ndarray, hr: np.ndarray, image_size: int, upscale_factor: int) -> Tuple[np.ndarray, np.ndarray]:
+def random_crop(lr: np.ndarray, hr: np.ndarray, image_size: int, upscale_factor: int) -> list[np.ndarray, np.ndarray]:
     """Will ``PIL.Image`` randomly capture the specified area of the image.
 
     Args:
@@ -164,6 +191,7 @@ def random_crop(lr: np.ndarray, hr: np.ndarray, image_size: int, upscale_factor:
 
     Returns:
         Randomly cropped low-resolution images and high-resolution images.
+
     """
     w, h = hr.size
     left = torch.randint(0, w - image_size + 1, size=(1,)).item()
@@ -180,7 +208,7 @@ def random_crop(lr: np.ndarray, hr: np.ndarray, image_size: int, upscale_factor:
     return lr, hr
 
 
-def random_rotate(lr: np.ndarray, hr: np.ndarray, angle: int) -> Tuple[np.ndarray, np.ndarray]:
+def random_rotate(lr: np.ndarray, hr: np.ndarray, angle: int) -> list[np.ndarray, np.ndarray]:
     """Will ``PIL.Image`` randomly rotate the image.
 
     Args:
@@ -190,6 +218,7 @@ def random_rotate(lr: np.ndarray, hr: np.ndarray, angle: int) -> Tuple[np.ndarra
 
     Returns:
         Randomly rotated low-resolution images and high-resolution images.
+
     """
     angle = random.choice((+angle, -angle))
     lr = F.rotate(lr, angle)
@@ -198,7 +227,7 @@ def random_rotate(lr: np.ndarray, hr: np.ndarray, angle: int) -> Tuple[np.ndarra
     return lr, hr
 
 
-def random_horizontally_flip(lr: np.ndarray, hr: np.ndarray, p=0.5) -> Tuple[np.ndarray, np.ndarray]:
+def random_horizontally_flip(lr: np.ndarray, hr: np.ndarray, p=0.5) -> list[np.ndarray, np.ndarray]:
     """Flip the ``PIL.Image`` image horizontally randomly.
 
     Args:
@@ -208,6 +237,7 @@ def random_horizontally_flip(lr: np.ndarray, hr: np.ndarray, p=0.5) -> Tuple[np.
 
     Returns:
         Low-resolution image and high-resolution image after random horizontal flip.
+
     """
     if torch.rand(1).item() > p:
         lr = F.hflip(lr)
@@ -216,7 +246,7 @@ def random_horizontally_flip(lr: np.ndarray, hr: np.ndarray, p=0.5) -> Tuple[np.
     return lr, hr
 
 
-def random_vertically_flip(lr: np.ndarray, hr: np.ndarray, p=0.5) -> Tuple[np.ndarray, np.ndarray]:
+def random_vertically_flip(lr: np.ndarray, hr: np.ndarray, p=0.5) -> list[np.ndarray, np.ndarray]:
     """Turn the ``PIL.Image`` image upside down randomly.
 
     Args:
@@ -226,6 +256,7 @@ def random_vertically_flip(lr: np.ndarray, hr: np.ndarray, p=0.5) -> Tuple[np.nd
 
     Returns:
         Randomly rotated up and down low-resolution images and high-resolution images.
+
     """
     if torch.rand(1).item() > p:
         lr = F.vflip(lr)
@@ -234,7 +265,7 @@ def random_vertically_flip(lr: np.ndarray, hr: np.ndarray, p=0.5) -> Tuple[np.nd
     return lr, hr
 
 
-def random_adjust_brightness(lr: np.ndarray, hr: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+def random_adjust_brightness(lr: np.ndarray, hr: np.ndarray) -> list[np.ndarray, np.ndarray]:
     """Set ``PIL.Image`` to randomly adjust the image brightness.
 
     Args:
@@ -243,6 +274,7 @@ def random_adjust_brightness(lr: np.ndarray, hr: np.ndarray) -> Tuple[np.ndarray
 
     Returns:
         Low-resolution image and high-resolution image with randomly adjusted brightness.
+
     """
     # Randomly adjust the brightness gain range.
     factor = random.uniform(0.5, 2)
@@ -252,7 +284,7 @@ def random_adjust_brightness(lr: np.ndarray, hr: np.ndarray) -> Tuple[np.ndarray
     return lr, hr
 
 
-def random_adjust_contrast(lr: np.ndarray, hr: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+def random_adjust_contrast(lr: np.ndarray, hr: np.ndarray) -> list[np.ndarray, np.ndarray]:
     """Set ``PIL.Image`` to randomly adjust the image contrast.
 
     Args:
@@ -261,6 +293,7 @@ def random_adjust_contrast(lr: np.ndarray, hr: np.ndarray) -> Tuple[np.ndarray, 
 
     Returns:
         Low-resolution image and high-resolution image with randomly adjusted contrast.
+
     """
     # Randomly adjust the contrast gain range.
     factor = random.uniform(0.5, 2)
