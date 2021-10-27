@@ -12,72 +12,56 @@
 # limitations under the License.
 # ==============================================================================
 """Realize the parameter configuration function of dataset, model, training and verification code."""
-import os
-
 import torch
-import torch.backends.cudnn as cudnn
-from torch import nn
-from torch import optim
-from torch.utils.tensorboard import SummaryWriter
-
-from model import SRCNN
+from torch.backends import cudnn as cudnn
 
 # ==============================================================================
 # General configuration
 # ==============================================================================
 torch.manual_seed(0)
-upscale_factor = 2
-device = torch.device("cuda:0")
+device = torch.device("cuda", 0)
 cudnn.benchmark = True
+upscale_factor = 2
 mode = "train"
-exp_name = "exp000"
+exp_name = "exp001"
 
 # ==============================================================================
 # Training configuration
 # ==============================================================================
 if mode == "train":
-    # Dataset.
-    train_dir = f"data/T91/X{upscale_factor}/train"
-    valid_dir = f"data/T91/X{upscale_factor}/valid"
+    # Dataset
+    # Image format
+    train_image_dir = f"data/T91/X{upscale_factor}/train"
+    valid_image_dir = f"data/T91/X{upscale_factor}/valid"
+    # LMDB format
+    train_lr_lmdb_path = f"data/train_lmdb/LR/T91_X{upscale_factor}_lmdb"
+    train_hr_lmdb_path = f"data/train_lmdb/HR/T91_X{upscale_factor}_lmdb"
+    valid_lr_lmdb_path = f"data/valid_lmdb/LR/T91_X{upscale_factor}_lmdb"
+    valid_hr_lmdb_path = f"data/valid_lmdb/HR/T91_X{upscale_factor}_lmdb"
+
+    lr_sub_image_size = 32
+    hr_sub_image_size = 20  # no zero padding
     batch_size = 16
 
-    # Model.
-    model = SRCNN(mode).to(device)
-
-    # Resuming training.
+    # Incremental training and migration training
+    resume = True
+    strict = False
     start_epoch = 0
-    resume = False
-    resume_weight = ""
+    resume_weight = "results/pretrained_models/srcnn_x2.pth"
 
-    # Total number of epochs. (4e8 iters)
+    # Total number of epochs (4e8 iters)
     epochs = 18000
 
-    # Loss function.
-    criterion = nn.MSELoss().to(device)
-
-    # Optimizer.
-    optimizer = optim.SGD([{"params": model.features.parameters()},
-                           {"params": model.map.parameters()},
-                           {"params": model.reconstruction.parameters(), "lr": 0.00001}], 0.0001)
-
-    # Training log.
-    writer = SummaryWriter(os.path.join("samples", "logs", exp_name))
-
-    # Additional variables.
-    exp_dir1 = os.path.join("samples", exp_name)
-    exp_dir2 = os.path.join("results", exp_name)
+    # Model optimizer parameter
+    model_optimizer_name = "sgd"
+    model_lr = 0.0001
 
 # ==============================================================================
 # Verify configuration
 # ==============================================================================
 if mode == "valid":
-    # Test data address.
+    # Test data address
     sr_dir = f"results/test/{exp_name}"
     hr_dir = f"data/Set5/GTmod12"
 
-    # Load sr model.
-    model = SRCNN(mode).to(device)
-    model.load_state_dict(torch.load(f"results/{exp_name}/best.pth", map_location=device))
-
-    # Additional variables.
-    exp_dir = os.path.join("results", "test", exp_name)
+    model_path = f"results/{exp_name}/srcnn_best.pth"
