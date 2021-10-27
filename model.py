@@ -19,9 +19,11 @@ from torch import nn
 
 
 class SRCNN(nn.Module):
-    def __init__(self, mode: str = "eval") -> None:
+    def __init__(self, mode: str) -> None:
         super(SRCNN, self).__init__()
         if mode == "train":
+            padding = False
+        else:
             padding = True
 
         # Feature extraction layer.
