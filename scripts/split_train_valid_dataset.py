@@ -16,6 +16,7 @@ import shutil
 import os
 
 upscale_factor = 4
+valid_samples_ratio = 0.1
 
 train_lr_image_dir = f"T91/X{upscale_factor}/train/inputs"
 train_hr_image_dir = f"T91/X{upscale_factor}/train/target"
@@ -28,7 +29,7 @@ if not os.path.exists(valid_hr_image_dir):
     os.makedirs(valid_hr_image_dir)
 
 train_files = os.listdir(train_lr_image_dir)
-valid_files = random.sample(train_files, int(len(train_files) * 0.1))
+valid_files = random.sample(train_files, int(len(train_files) * valid_samples_ratio))
 
 for file_name in valid_files:
     train_lr_image_path = f"{train_lr_image_dir}/{file_name}"
