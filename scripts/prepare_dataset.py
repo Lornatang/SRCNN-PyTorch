@@ -27,9 +27,10 @@ def main(args):
 
     if os.path.exists(lr_image_dir):
         shutil.rmtree(lr_image_dir)
-    os.makedirs(lr_image_dir)
     if os.path.exists(hr_image_dir):
         shutil.rmtree(hr_image_dir)
+
+    os.makedirs(lr_image_dir)
     os.makedirs(hr_image_dir)
 
     image_file_names = os.listdir(args.inputs_image_dir)
