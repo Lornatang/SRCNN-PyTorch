@@ -12,23 +12,25 @@
 # limitations under the License.
 # ==============================================================================
 """File description: Realize the verification function after model training."""
-import shutil
+import os
 import warnings
-from typing import Tuple
 
 import cv2
 import numpy as np
 import skimage.color
 import skimage.io
 import skimage.metrics
+import torch
 from PIL import Image
+from natsort import natsorted
 from skimage import img_as_ubyte
 
-from config import *
-from imgproc import *
+import config
+import imgproc
+from model import SRCNN
 
 
-def cal_psnr_and_ssim(sr_image, hr_image) -> Tuple[float, float]:
+def cal_psnr_and_ssim(sr_image, hr_image) -> [float, float]:
     """Calculate the PSNR and SSIM values between the super-resolution image and the high-resolution image.
 
     Args:
@@ -39,12 +41,12 @@ def cal_psnr_and_ssim(sr_image, hr_image) -> Tuple[float, float]:
         PSNR value(float), SSIM value(float).
     """
     # Test the super-resolution performance of the Y channel.
-    sr = normalize(sr_image)
-    hr = normalize(hr_image)
+    sr = imgproc.normalize(sr_image)
+    hr = imgproc.normalize(hr_image)
     sr = skimage.color.rgb2ycbcr(sr)[:, :, 0:1]
     hr = skimage.color.rgb2ycbcr(hr)[:, :, 0:1]
-    sr = normalize(sr)
-    hr = normalize(hr)
+    sr = imgproc.normalize(sr)
+    hr = imgproc.normalize(hr)
 
     psnr = skimage.metrics.peak_signal_noise_ratio(sr, hr, data_range=1.0)
     ssim = skimage.metrics.structural_similarity(sr,
@@ -68,6 +70,7 @@ def cal_spectrum(sr_image, hr_image) -> float:
 
     Returns:
         Spectrum value(float).
+
     """
     # Scikit-image format is converted to OpenCV format.
     sr = img_as_ubyte(sr_image)
@@ -126,7 +129,7 @@ def cal_spectrum(sr_image, hr_image) -> float:
     return spectrum
 
 
-def image_quality_assessment(sr_path: str, hr_path: str) -> Tuple[float, float, float]:
+def image_quality_assessment(sr_path: str, hr_path: str) -> [float, float, float]:
     """Image quality evaluation function.
 
     Args:
@@ -151,10 +154,21 @@ def image_quality_assessment(sr_path: str, hr_path: str) -> Tuple[float, float, 
 
 
 def main() -> None:
-    # Create a super-resolution experiment result folder.
-    if os.path.exists(exp_dir):
-        shutil.rmtree(exp_dir)
-    os.makedirs(exp_dir)
+    # Create a folder of super-resolution experiment results
+    results_dir = os.path.join("results", "test", config.exp_name)
+    if not os.path.exists(results_dir):
+        os.makedirs(results_dir)
+
+    # Initialize the super-resolution model
+    print("Build SR model...")
+    model = SRCNN(mode="eval").to(config.device, non_blocking=True)
+    print("Build SR model successfully.")
+
+    # Load the super-resolution model weights
+    print(f"Load SR model weights `{os.path.abspath(config.model_path)}`...")
+    state_dict = torch.load(config.model_path, map_location=config.device)
+    model.load_state_dict(state_dict)
+    print(f"Load SR model weights `{os.path.abspath(config.model_path)}` successfully.")
 
     # Start the verification mode of the model.
     model.eval()
@@ -167,33 +181,33 @@ def main() -> None:
     total_spectrum = 0.0
 
     # Get a list of test image file names.
-    filenames = os.listdir(hr_dir)
+    filenames = natsorted(os.listdir(config.hr_dir))
     # Get the number of test image files.
     total_files = len(filenames)
 
     for index in range(total_files):
-        sr_path = os.path.join(sr_dir, filenames[index])
-        hr_path = os.path.join(hr_dir, filenames[index])
+        sr_path = os.path.join(config.sr_dir, filenames[index])
+        hr_path = os.path.join(config.hr_dir, filenames[index])
         # Make low-resolution images.
         image = Image.open(hr_path).convert("RGB")
-        image_width = (image.width // upscale_factor) * upscale_factor
-        image_height = (image.height // upscale_factor) * upscale_factor
+        image_width = (image.width // config.upscale_factor) * config.upscale_factor
+        image_height = (image.height // config.upscale_factor) * config.upscale_factor
         image = image.resize([image_width, image_height], Image.BICUBIC)
-        image = image.resize([image.width // upscale_factor, image.height // upscale_factor], Image.BICUBIC)
-        image = image.resize([image.width * upscale_factor, image.height * upscale_factor], Image.BICUBIC)
+        image = image.resize([image.width // config.upscale_factor, image.height // config.upscale_factor], Image.BICUBIC)
+        image = image.resize([image.width * config.upscale_factor, image.height * config.upscale_factor], Image.BICUBIC)
         # Extract Y channel image data.
         lr_image = np.array(image).astype(np.float32)
-        lr_ycbcr = convert_rgb_to_ycbcr(lr_image)
+        lr_ycbcr = imgproc.convert_rgb_to_ycbcr(lr_image)
         lr_image_y = lr_ycbcr[..., 0]
         lr_image_y /= 255.
-        lr_tensor_y = torch.from_numpy(lr_image_y).to(device).unsqueeze(0).unsqueeze(0)
+        lr_tensor_y = torch.from_numpy(lr_image_y).to(config.device).unsqueeze(0).unsqueeze(0)
         lr_tensor_y = lr_tensor_y.half()
         # Only reconstruct the Y channel image data.
         with torch.no_grad():
             sr_tensor_y = model(lr_tensor_y).clamp_(0., 1.)
             sr_image_y = sr_tensor_y.mul(255.0).cpu().numpy().squeeze(0).squeeze(0)
             sr_image = np.array([sr_image_y, lr_ycbcr[..., 1], lr_ycbcr[..., 2]]).transpose([1, 2, 0])
-            sr_image = np.clip(convert_ycbcr_to_rgb(sr_image), 0.0, 255.0).astype(np.uint8)
+            sr_image = np.clip(imgproc.convert_ycbcr_to_rgb(sr_image), 0.0, 255.0).astype(np.uint8)
             sr_image = Image.fromarray(sr_image)
             sr_image.save(sr_path)
 
