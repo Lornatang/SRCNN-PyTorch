@@ -6,13 +6,13 @@
 
 - Image format
     - [Google Driver](https://drive.google.com/drive/folders/1PYizfnKq-UtRCDoSy79PGA4FC5HqAqch?usp=sharing)
-    - [Baidu Driver](https://pan.baidu.com/s/1Oa1oas0GOT78DX1IAX7svg) access: `llot`
+    - [Baidu Driver](https://pan.baidu.com/s/1M0u-BPTdokxO452j7vxW4Q) access: `llot`
 
 - LMDB format
     - [Google Driver](https://drive.google.com/drive/folders/1PYizfnKq-UtRCDoSy79PGA4FC5HqAqch?usp=sharing)
-    - [Baidu Driver](https://pan.baidu.com/s/1Oa1oas0GOT78DX1IAX7svg) access: `llot`
+    - [Baidu Driver](https://pan.baidu.com/s/1D-OmhMCCFHuvZ_7OugDHWQ) access: `llot`
 
-## Download val dataset
+## Download valid dataset
 
 ### Set5
 
@@ -50,7 +50,7 @@
             - target
                 - ...
     - X4
-        - traina
+        - train
             - inputs
                 - ...
             - target
@@ -67,21 +67,21 @@
 
 ```text
 - train_lmdb
-    - HR
-        - T91
+    - LR
+        - T91_X4_lmdb
             - data.mdb
             - lock.mdb
-    - LRbicx4
-        - T91
+    - HR
+        - T91_X4_lmdb
             - data.mdb
             - lock.mdb
 - valid_lmdb
-    - HR
-        - T91
+    - LR
+        - T91_X4_lmdb
             - data.mdb
             - lock.mdb
-    - LRbicx4
-        - T91
+    - HR
+        - T91_X4_lmdb
             - data.mdb
             - lock.mdb
 ```
