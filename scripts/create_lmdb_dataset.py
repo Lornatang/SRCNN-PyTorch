@@ -13,6 +13,7 @@
 # ==============================================================================
 import argparse
 import os
+import shutil
 
 import cv2
 import lmdb
@@ -20,14 +21,22 @@ from tqdm import tqdm
 
 
 def main(args):
+    if os.path.exists(args.lr_lmdb_path):
+        shutil.rmtree(args.lr_lmdb_path)
+    if os.path.exists(args.hr_lmdb_path):
+        shutil.rmtree(args.hr_lmdb_path)
+
+    os.makedirs(args.lr_lmdb_path)
+    os.makedirs(args.hr_lmdb_path)
+
     image_file_names = os.listdir(args.lr_image_dir)
     total_image_number = len(image_file_names)
 
     # Determine the LMDB database file size according to the image size
     lr_image = cv2.imread(os.path.abspath(f"{args.lr_image_dir}/{image_file_names[0]}"))
     hr_image = cv2.imread(os.path.abspath(f"{args.lr_image_dir}/{image_file_names[0]}"))
-    lr_image_lmdb_map_size = lr_image[0] * lr_image[1] * lr_image[2] * total_image_number * 1.5
-    hr_image_lmdb_map_size = hr_image[0] * hr_image[1] * hr_image[2] * total_image_number * 1.5
+    lr_image_lmdb_map_size = lr_image.shape[0] * lr_image.shape[1] * lr_image.shape[2] * total_image_number * 1.5
+    hr_image_lmdb_map_size = hr_image.shape[0] * hr_image.shape[1] * hr_image.shape[2] * total_image_number * 1.5
 
     # Open LMDB write environment
     lr_lmdb_env = lmdb.open(args.lr_lmdb_path, map_size=int(lr_image_lmdb_map_size))
