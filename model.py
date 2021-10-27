@@ -14,16 +14,14 @@
 """Realize the model definition function."""
 from math import sqrt
 
-from torch import Tensor
+import torch
 from torch import nn
 
 
 class SRCNN(nn.Module):
-    def __init__(self, mode: str) -> None:
+    def __init__(self, mode: str = "eval") -> None:
         super(SRCNN, self).__init__()
         if mode == "train":
-            padding = False
-        else:
             padding = True
 
         # Feature extraction layer.
@@ -44,11 +42,11 @@ class SRCNN(nn.Module):
         # Initialize model weights.
         self._initialize_weights()
 
-    def forward(self, x: Tensor) -> Tensor:
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self._forward_impl(x)
 
     # Support torch.script function.
-    def _forward_impl(self, x: Tensor) -> Tensor:
+    def _forward_impl(self, x: torch.Tensor) -> torch.Tensor:
         out = self.features(x)
         out = self.map(out)
         out = self.reconstruction(out)
@@ -57,12 +55,12 @@ class SRCNN(nn.Module):
 
     # The filter weight of each layer is a Gaussian distribution with zero mean and standard deviation initialized by random extraction 0.001 (deviation is 0).
     def _initialize_weights(self) -> None:
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
+        for module in self.modules():
+            if isinstance(module, nn.Conv2d):
                 mean = 0.0
-                std = sqrt(2 / (m.out_channels * m.weight.data[0][0].numel()))
-                nn.init.normal_(m.weight.data, mean=mean, std=std)
-                nn.init.zeros_(m.bias.data)
+                std = sqrt(2 / (module.out_channels * module.weight.data[0][0].numel()))
+                nn.init.normal_(module.weight.data, mean, std)
+                nn.init.zeros_(module.bias.data)
 
-        nn.init.normal_(self.reconstruction.weight.data, mean=0.0, std=0.001)
+        nn.init.normal_(self.reconstruction.weight.data, 0.0, 0.001)
         nn.init.zeros_(self.reconstruction.bias.data)
