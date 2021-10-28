@@ -72,7 +72,7 @@ def image2tensor(image: np.ndarray, range_norm: bool) -> torch.Tensor:
     """
     tensor = F.to_tensor(image)
     if range_norm:
-        tensor = (tensor * 2.) - 1.
+        tensor = tensor = tensor.mul_(2.0).sub_(1.0)
 
     return tensor
 
