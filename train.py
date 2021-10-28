@@ -103,18 +103,18 @@ def validate(model, valid_dataloader, criterion, epoch, writer) -> float:
     # Put the generator in verification mode.
     model.eval()
     # Initialize the evaluation index.
-    total_psnr_metric = 0.0
+    total_psnr = 0.0
 
     with torch.no_grad():
         for index, (lr, hr) in enumerate(valid_dataloader):
             lr = lr.to(config.device, non_blocking=True)
             hr = hr.to(config.device, non_blocking=True)
             # Calculate the PSNR evaluation index.
-            sr = model(lr)
+            sr = model(lr).clamp_(0.0, 1.0)
             psnr = 10 * torch.log10(1 / criterion(sr, hr)).item()
-            total_psnr_metric += psnr
+            total_psnr += psnr
 
-        avg_psnr = total_psnr_metric / batches
+        avg_psnr = total_psnr / batches
         # Write the value of each round of verification indicators into Tensorboard.
         writer.add_scalar("Valid/PSNR", avg_psnr, epoch + 1)
         # Print evaluation indicators.
