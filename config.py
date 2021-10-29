@@ -44,10 +44,10 @@ if mode == "train":
     batch_size = 16
 
     # Incremental training and migration training
-    resume = True
+    resume = False
     strict = False
     start_epoch = 0
-    resume_weight = "results/pretrained_models/srcnn_x2.pth"
+    resume_weight = ""
 
     # Total number of epochs
     epochs = 512
