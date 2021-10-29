@@ -52,12 +52,16 @@ def define_optimizer(model) -> optim.SGD:
         optimizer = optim.SGD([{"params": model.features.parameters()},
                                {"params": model.map.parameters()},
                                {"params": model.reconstruction.parameters(), "lr": config.model_lr * 0.1}],
-                              lr=config.model_lr, momentum=config.model_momentum, weight_decay=config.model_weight_decay)
+                              lr=config.model_lr,
+                              momentum=config.model_momentum,
+                              weight_decay=config.model_weight_decay,
+                              nesterov=config.model_nesterov)
     else:
         optimizer = optim.Adam([{"params": model.features.parameters()},
                                 {"params": model.map.parameters()},
                                 {"params": model.reconstruction.parameters(), "lr": config.model_lr * 0.1}],
-                               lr=config.model_lr)
+                               lr=config.model_lr,
+                               betas=config.model_betas)
 
     return optimizer
 
