@@ -49,12 +49,21 @@ if mode == "train":
     start_epoch = 0
     resume_weight = "results/pretrained_models/srcnn_x2.pth"
 
-    # Total number of epochs (4e8 iters)
-    epochs = 18000
+    # Total number of epochs
+    epochs = 512
 
-    # Model optimizer parameter
-    model_optimizer_name = "sgd"
-    model_lr = 0.0001
+    # Model optimizer parameter (It’s too hard to train, the training time is too long and the effect is not good)
+    # model_optimizer_name = "sgd"
+    # model_lr = 1e-4
+    # model_momentum = 0.9
+    # model_weight_decay = 1e-6
+    # model_nesterov = True
+
+    # Modify optimizer parameter (faster training and better PSNR)
+    model_optimizer_name = "adam"
+    model_lr = 1e-4
+    model_betas = (0.9, 0.999)
+
 
 # ==============================================================================
 # Verify configuration
