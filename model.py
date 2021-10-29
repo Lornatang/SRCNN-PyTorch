@@ -34,7 +34,7 @@ class SRCNN(nn.Module):
 
         # Non-linear mapping layer.
         self.map = nn.Sequential(
-            nn.Conv2d(64, 32, (1, 1), (1, 1), (0, 0)),
+            nn.Conv2d(64, 32, (5, 5), (1, 1), (2, 2)),
             nn.ReLU(True)
         )
 
@@ -59,9 +59,7 @@ class SRCNN(nn.Module):
     def _initialize_weights(self) -> None:
         for module in self.modules():
             if isinstance(module, nn.Conv2d):
-                mean = 0.0
-                std = sqrt(2 / (module.out_channels * module.weight.data[0][0].numel()))
-                nn.init.normal_(module.weight.data, mean, std)
+                nn.init.normal_(module.weight.data, 0.0, sqrt(2 / (module.out_channels * module.weight.data[0][0].numel())))
                 nn.init.zeros_(module.bias.data)
 
         nn.init.normal_(self.reconstruction.weight.data, 0.0, 0.001)
