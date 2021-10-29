@@ -43,17 +43,18 @@ class BaseDataset(Dataset):
         self.lr_filenames = [os.path.join(lr_dir_path, x) for x in self.filenames]
         self.hr_filenames = [os.path.join(hr_dir_path, x) for x in self.filenames]
 
-    def __getitem__(self, index: int) -> [Tensor, Tensor]:
-        lr_image_data = Image.open(self.lr_filenames[index]).convert("YCbCr")
-        hr_image_data = Image.open(self.hr_filenames[index]).convert("YCbCr")
+    def __getitem__(self, batch_index: int) -> [Tensor, Tensor]:
+        lr_image_data = Image.open(self.lr_filenames[batch_index]).convert("YCbCr")
+        hr_image_data = Image.open(self.hr_filenames[batch_index]).convert("YCbCr")
 
-        # Only extract the image data of the Y channel.
+        # Only extract the image data of the Y channel
         lr_image_y_data, _, _ = lr_image_data.split()
         hr_image_y_data, _, _ = hr_image_data.split()
 
-        # `PIL.Image` image data is converted to `Tensor` format data.
-        lr_tensor_data = imgproc.image2tensor(lr_image_data, False)
-        hr_tensor_data = imgproc.image2tensor(hr_image_data, False)
+        # `PIL.Image` image data is converted to `Tensor` format data
+        # Note: The range of input and output is between [0, 1]
+        lr_tensor_data = imgproc.image2tensor(lr_image_y_data, range_norm=False, half=False)
+        hr_tensor_data = imgproc.image2tensor(hr_image_y_data, range_norm=False, half=False)
 
         return lr_tensor_data, hr_tensor_data
 
@@ -94,8 +95,8 @@ class LMDBDataset(Dataset):
 
         # Convert image data into Tensor stream format (PyTorch).
         # Note: The range of input and output is between [0, 1]
-        lr_tensor_data = imgproc.image2tensor(lr_image_y_data, False)
-        hr_tensor_data = imgproc.image2tensor(hr_image_y_data, False)
+        lr_tensor_data = imgproc.image2tensor(lr_image_y_data, range_norm=False, half=False)
+        hr_tensor_data = imgproc.image2tensor(hr_image_y_data, range_norm=False, half=False)
 
         return lr_tensor_data, hr_tensor_data
 
