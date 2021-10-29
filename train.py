@@ -29,8 +29,8 @@ from model import SRCNN
 def load_dataset() -> [DataLoader, DataLoader]:
     train_datasets = LMDBDataset(config.train_lr_lmdb_path, config.train_hr_lmdb_path)
     valid_datasets = LMDBDataset(config.valid_lr_lmdb_path, config.valid_hr_lmdb_path)
-    train_dataloader = DataLoader(train_datasets, config.batch_size, shuffle=True, pin_memory=True)
-    valid_dataloader = DataLoader(valid_datasets, config.batch_size, shuffle=False, pin_memory=True)
+    train_dataloader = DataLoader(train_datasets, batch_size=config.batch_size, shuffle=True, pin_memory=True)
+    valid_dataloader = DataLoader(valid_datasets, batch_size=config.batch_size, shuffle=False, pin_memory=True)
 
     return train_dataloader, valid_dataloader
 
@@ -52,12 +52,12 @@ def define_optimizer(model) -> optim.SGD:
         optimizer = optim.SGD([{"params": model.features.parameters()},
                                {"params": model.map.parameters()},
                                {"params": model.reconstruction.parameters(), "lr": config.model_lr * 0.1}],
-                              lr=config.model_lr)
+                              lr=config.model_lr, momentum=config.model_momentum, weight_decay=config.model_weight_decay)
     else:
-        optimizer = optim.SGD([{"params": model.features.parameters()},
-                               {"params": model.map.parameters()},
-                               {"params": model.reconstruction.parameters(), "lr": config.model_lr * 0.1}],
-                              lr=config.model_lr)
+        optimizer = optim.Adam([{"params": model.features.parameters()},
+                                {"params": model.map.parameters()},
+                                {"params": model.reconstruction.parameters(), "lr": config.model_lr * 0.1}],
+                               lr=config.model_lr)
 
     return optimizer
 
@@ -81,11 +81,16 @@ def train(model, train_dataloader, criterion, optimizer, epoch, scaler, writer) 
         # Initialize the generator gradient
         model.zero_grad()
 
-        # Mixed precision training
+        # Mixed precision training + gradient cropping
         with amp.autocast():
             sr = model(lr)
             loss = criterion(sr, hr)
+        # Gradient zoom
         scaler.scale(loss).backward()
+        # Gradient clipping
+        scaler.unscale_(optimizer)
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+        # Update generator weight
         scaler.step(optimizer)
         scaler.update()
 
