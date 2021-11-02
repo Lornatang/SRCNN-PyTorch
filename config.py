@@ -39,9 +39,7 @@ if mode == "train":
     valid_lr_lmdb_path = f"data/valid_lmdb/LR/T91_X{upscale_factor}_lmdb"
     valid_hr_lmdb_path = f"data/valid_lmdb/HR/T91_X{upscale_factor}_lmdb"
 
-    lr_sub_image_size = 32
-    hr_sub_image_size = 20  # no zero padding
-    batch_size = 16
+   batch_size = 128
 
     # Incremental training and migration training
     resume = False
@@ -50,20 +48,19 @@ if mode == "train":
     resume_weight = ""
 
     # Total number of epochs
-    epochs = 512
+    epochs = 1024
 
     # Model optimizer parameter (It’s too hard to train, the training time is too long and the effect is not good)
-    # model_optimizer_name = "sgd"
-    # model_lr = 1e-4
-    # model_momentum = 0.9
-    # model_weight_decay = 1e-6
-    # model_nesterov = True
+    model_optimizer_name = "sgd"
+    model_lr = 1e-4
+    model_momentum = 0.9
+    model_weight_decay = 1e-6
+    model_nesterov = True
 
     # Modify optimizer parameter (faster training and better PSNR)
-    model_optimizer_name = "adam"
-    model_lr = 1e-4
-    model_betas = (0.9, 0.999)
-
+    # model_optimizer_name = "adam"
+    # model_lr = 1e-4
+    # model_betas = (0.9, 0.999)
 
 # ==============================================================================
 # Verify configuration
