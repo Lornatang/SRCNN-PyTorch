@@ -36,7 +36,7 @@ def load_dataset() -> [DataLoader, DataLoader]:
 
 
 def build_model() -> nn.Module:
-    model = SRCNN(mode="train").to(config.device, non_blocking=True)
+    model = SRCNN().to(config.device, non_blocking=True)
 
     return model
 
