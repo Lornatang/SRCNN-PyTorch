@@ -38,19 +38,19 @@ if mode == "train":
     train_hr_lmdb_path = f"data/train_lmdb/HR/T91_X{upscale_factor}_lmdb"
     valid_lr_lmdb_path = f"data/valid_lmdb/LR/T91_X{upscale_factor}_lmdb"
     valid_hr_lmdb_path = f"data/valid_lmdb/HR/T91_X{upscale_factor}_lmdb"
-
+    
     batch_size = 16
 
     # Incremental training and migration training
     resume = False
-    strict = False
+    strict = True
     start_epoch = 0
     resume_weight = ""
 
     # Total number of epochs
     epochs = 100
 
-    # Model optimizer parameter
+    # Model optimizer parameter (less training and low PSNR)
     model_optimizer_name = "sgd"
     model_lr = 1e-4
     model_momentum = 0.9
