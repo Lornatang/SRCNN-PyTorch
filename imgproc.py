@@ -22,7 +22,7 @@ from torchvision.transforms import functional as F
 __all__ = [
     "normalize", "unnormalize",
     "image2tensor", "tensor2image",
-    "convert_rgb_to_ycbcr", "convert_ycbcr_to_rgb",
+    "convert_rgb_to_y", "convert_rgb_to_ycbcr", "convert_ycbcr_to_rgb",
     "center_crop", "random_crop",
     "random_rotate", "random_horizontally_flip", "random_vertically_flip",
     "random_adjust_brightness", "random_adjust_contrast"
@@ -55,55 +55,82 @@ def unnormalize(image: np.ndarray) -> np.ndarray:
     return image.astype(np.float64) * 255.0
 
 
-def image2tensor(image: np.ndarray, range_norm: bool) -> torch.Tensor:
+def image2tensor(image: np.ndarray, range_norm: bool, half: bool) -> torch.Tensor:
     """Convert ``PIL.Image`` to Tensor.
 
     Args:
         image (np.ndarray): The image data read by ``PIL.Image``
         range_norm (bool): Scale [0, 1] data to between [-1, 1]
+        half (bool): Whether to convert torch.float32 similarly to torch.half type.
 
     Returns:
-        torch.Tensor: normalized image data.
+        torch.Tensor: normalized image data
 
     Examples:
-        >>> image = cv2.imread("image.bmp")
-        >>> tensor_image = image2tensor(image)
+        >>> image = Image.open("image.bmp")
+        >>> tensor_image = image2tensor(image, range_norm=False, half=False)
 
     """
     tensor = F.to_tensor(image)
     if range_norm:
-        tensor = tensor = tensor.mul_(2.0).sub_(1.0)
+        tensor = tensor.mul_(2.0).sub_(1.0)
+    if half:
+        tensor = tensor.half()
 
     return tensor
 
 
-def tensor2image(tensor: torch.Tensor, range_norm: bool) -> np.ndarray:
+def tensor2image(tensor: torch.Tensor, range_norm: bool, half: bool) -> np.ndarray:
     """Converts ``torch.Tensor`` to ``PIL.Image``.
 
     Args:
         tensor (torch.Tensor): The image that needs to be converted to ``PIL.Image``
         range_norm (bool): Scale [-1, 1] data to between [0, 1]
+        half (bool): Whether to convert torch.float32 similarly to torch.half type.
 
     Returns:
-        np.ndarray: RGB image array data.
+        np.ndarray: Convert image data to support PIL library
 
     Examples:
         >>> tensor = torch.randn([1, 3, 128, 128])
-        >>> image = tensor2image(tensor, range_norm=True)
+        >>> image = tensor2image(tensor, range_norm=False, half=False)
 
     """
     if range_norm:
         tensor = tensor.add_(1.0).div_(2.0)
-    image = Image.fromarray(tensor.squeeze(0).mul_(255).clamp_(0, 255).permute(1, 2, 0).to("cpu", torch.uint8).numpy())
+    if half:
+        tensor = tensor.half()
+    image = Image.fromarray(tensor.squeeze_(0).mul_(255).clamp_(0, 255).permute(1, 2, 0).to("cpu", torch.uint8).numpy())
 
     return image
+
+
+def convert_rgb_to_y(image: np.ndarray or torch.Tensor) -> torch.Tensor:
+    """Convert RGB image or tensor image data to YCbCr(Y) format.
+
+    Args:
+        image (np.ndarray): RGB image data read by ``PIL.Image''.
+
+    Returns:
+        np.ndarray or torch.Tensor: Y image array data.
+
+    """
+    if type(image) == np.ndarray:
+        return 16. + (64.738 * image[:, :, 0] + 129.057 * image[:, :, 1] + 25.064 * image[:, :, 2]) / 256.
+    elif type(image) == torch.Tensor:
+        if len(image.shape) == 4:
+            image = image.squeeze_(0)
+        return 16. + (64.738 * image[0, :, :] + 129.057 * image[1, :, :] + 25.064 * image[2, :, :]) / 256.
+    else:
+        raise Exception("Unknown Type", type(image))
 
 
 def convert_rgb_to_ycbcr(image: np.ndarray or torch.Tensor) -> torch.Tensor:
     """Convert RGB image or tensor image data to YCbCr format.
 
     Args:
-       image (np.ndarray): RGB image data read by ``PIL.Image''.
+        image (np.ndarray): RGB image data read by ``PIL.Image''.
+
 
     Returns:
         np.ndarray or torch.Tensor: YCbCr image array data.
