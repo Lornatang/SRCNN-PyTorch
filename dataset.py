@@ -19,6 +19,7 @@ import lmdb
 from PIL import Image
 from torch import Tensor
 from torch.utils.data import Dataset
+import numpy as np
 
 import imgproc
 
@@ -44,17 +45,22 @@ class BaseDataset(Dataset):
         self.hr_filenames = [os.path.join(hr_dir_path, x) for x in self.filenames]
 
     def __getitem__(self, batch_index: int) -> [Tensor, Tensor]:
-        lr_image_data = Image.open(self.lr_filenames[batch_index]).convert("YCbCr")
-        hr_image_data = Image.open(self.hr_filenames[batch_index]).convert("YCbCr")
+        # Read a batch of image data
+        lr_image_data = Image.open(self.lr_filenames[batch_index])
+        hr_image_data = Image.open(self.hr_filenames[batch_index])
+
+        # RGB convert YCbCr
+        lr_ycbcr_image_data = lr_image_data.convert("YCbCr")
+        hr_ycbcr_image_data = hr_image_data.convert("YCbCr")
 
         # Only extract the image data of the Y channel
-        lr_image_y_data, _, _ = lr_image_data.split()
-        hr_image_y_data, _, _ = hr_image_data.split()
+        lr_y_image_data = lr_ycbcr_image_data.split()[0]
+        hr_y_image_data = hr_ycbcr_image_data.split()[0]
 
-        # `PIL.Image` image data is converted to `Tensor` format data
+        # Convert image data into Tensor stream format (PyTorch).
         # Note: The range of input and output is between [0, 1]
-        lr_tensor_data = imgproc.image2tensor(lr_image_y_data, range_norm=False, half=False)
-        hr_tensor_data = imgproc.image2tensor(hr_image_y_data, range_norm=False, half=False)
+        lr_tensor_data = imgproc.image2tensor(lr_y_image_data, range_norm=False, half=False)
+        hr_tensor_data = imgproc.image2tensor(hr_y_image_data, range_norm=False, half=False)
 
         return lr_tensor_data, hr_tensor_data
 
@@ -89,14 +95,18 @@ class LMDBDataset(Dataset):
         lr_image_data = self.lr_datasets[batch_index]
         hr_image_data = self.hr_datasets[batch_index]
 
-        # Only extract the image data of the Y channel.
-        lr_image_y_data, _, _ = lr_image_data.convert("YCbCr").split()
-        hr_image_y_data, _, _ = hr_image_data.convert("YCbCr").split()
+        # RGB convert YCbCr
+        lr_ycbcr_image_data = lr_image_data.convert("YCbCr")
+        hr_ycbcr_image_data = hr_image_data.convert("YCbCr")
+
+        # Only extract the image data of the Y channel
+        lr_y_image_data = lr_ycbcr_image_data.split()[0]
+        hr_y_image_data = hr_ycbcr_image_data.split()[0]
 
         # Convert image data into Tensor stream format (PyTorch).
         # Note: The range of input and output is between [0, 1]
-        lr_tensor_data = imgproc.image2tensor(lr_image_y_data, range_norm=False, half=False)
-        hr_tensor_data = imgproc.image2tensor(hr_image_y_data, range_norm=False, half=False)
+        lr_tensor_data = imgproc.image2tensor(lr_y_image_data, range_norm=False, half=False)
+        hr_tensor_data = imgproc.image2tensor(hr_y_image_data, range_norm=False, half=False)
 
         return lr_tensor_data, hr_tensor_data
 
