@@ -19,27 +19,22 @@ from torch import nn
 
 
 class SRCNN(nn.Module):
-    def __init__(self, mode: str) -> None:
+    def __init__(self) -> None:
         super(SRCNN, self).__init__()
-        if mode == "train":
-            padding = False
-        else:
-            padding = True
-
         # Feature extraction layer.
         self.features = nn.Sequential(
-            nn.Conv2d(1, 64, (9, 9), (1, 1), (4, 4) if padding else (0, 0)),
+            nn.Conv2d(1, 64, (9, 9), (1, 1), (4, 4)),
             nn.ReLU(True)
         )
 
         # Non-linear mapping layer.
         self.map = nn.Sequential(
-            nn.Conv2d(64, 32, (5, 5), (1, 1), (2, 2)),
+            nn.Conv2d(64, 32, (1, 1), (1, 1), (0, 0)),
             nn.ReLU(True)
         )
 
         # Rebuild the layer.
-        self.reconstruction = nn.Conv2d(32, 1, (5, 5), (1, 1), (2, 2) if padding else (0, 0))
+        self.reconstruction = nn.Conv2d(32, 1, (5, 5), (1, 1), (2, 2))
 
         # Initialize model weights.
         self._initialize_weights()
