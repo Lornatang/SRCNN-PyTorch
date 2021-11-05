@@ -2,8 +2,7 @@
 
 ## Overview
 
-This repository contains an op-for-op PyTorch reimplementation
-of [Image Super-Resolution Using Deep Convolutional Networks](https://arxiv.org/abs/1501.00092v3).
+This repository contains an op-for-op PyTorch reimplementation of [Image Super-Resolution Using Deep Convolutional Networks](https://arxiv.org/abs/1501.00092v3).
 
 ## Table of contents
 
@@ -25,14 +24,13 @@ of [Image Super-Resolution Using Deep Convolutional Networks](https://arxiv.org/
 
 If you're new to SRCNN, here's an abstract straight from the paper:
 
-We propose a deep learning method for single image super-resolution (SR). Our method directly learns an end-to-end
-mapping between the low/high-resolution images. The mapping is represented as a deep convolutional neural network (CNN)
-that takes the low-resolution image as the input and outputs the high-resolution one. We further show that traditional
-sparse-coding-based SR methods can also be viewed as a deep convolutional network. But unlike traditional methods that
-handle each component separately, our method jointly optimizes all layers. Our deep CNN has a lightweight structure, yet
-demonstrates state-of-the-art restoration quality, and achieves fast speed for practical on-line usage. We explore
-different network structures and parameter settings to achieve trade-offs between performance and speed. Moreover, we
-extend our network to cope with three color channels simultaneously, and show better overall reconstruction quality.
+We propose a deep learning method for single image super-resolution (SR). Our method directly learns an end-to-end mapping between the
+low/high-resolution images. The mapping is represented as a deep convolutional neural network (CNN)
+that takes the low-resolution image as the input and outputs the high-resolution one. We further show that traditional sparse-coding-based SR methods
+can also be viewed as a deep convolutional network. But unlike traditional methods that handle each component separately, our method jointly optimizes
+all layers. Our deep CNN has a lightweight structure, yet demonstrates state-of-the-art restoration quality, and achieves fast speed for practical
+on-line usage. We explore different network structures and parameter settings to achieve trade-offs between performance and speed. Moreover, we extend
+our network to cope with three color channels simultaneously, and show better overall reconstruction quality.
 
 ## Download weights
 
@@ -43,48 +41,58 @@ extend our network to cope with three color channels simultaneously, and show be
 
 ### Download train dataset
 
-- [Google Driver](https://drive.google.com/drive/folders/1PYizfnKq-UtRCDoSy79PGA4FC5HqAqch?usp=sharing)
-- [Baidu Driver](https://pan.baidu.com/s/1Oa1oas0GOT78DX1IAX7svg) access: `llot`
+#### T91
 
-### Download val dataset
+- Image format
+    - [Google Driver](https://drive.google.com/drive/folders/1PYizfnKq-UtRCDoSy79PGA4FC5HqAqch?usp=sharing)
+    - [Baidu Driver](https://pan.baidu.com/s/1M0u-BPTdokxO452j7vxW4Q) access: `llot`
 
-Set5 dataset:
+- LMDB format (train)
+    - [Google Driver](https://drive.google.com/drive/folders/1BPqN08QHk_xFnMJWMS8grfh_vesVs8Jf?usp=sharing)
+    - [Baidu Driver](https://pan.baidu.com/s/1eqeORnKcTmGatx2kAG92-A) access: `llot`
 
-- [Google Driver](https://drive.google.com/file/d/1GtQuoEN78q3AIP8vkh-17X90thYp_FfU/view?usp=sharing)
-- [Baidu Driver](https://pan.baidu.com/s/1dlPcpwRPUBOnxlfW5--S5g) access:`llot`
+- LMDB format (valid)
+    - [Google Driver](https://drive.google.com/drive/folders/1bYqqKk6NJ9wUfxTH2t_LbdMTB04OUicc?usp=sharing)
+    - [Baidu Driver](https://pan.baidu.com/s/1W34MeEtLY0m-bOrnaveVmw) access: `llot`
 
-Set14 dataset:
+### Download valid dataset
 
-- [Google Driver](https://drive.google.com/file/d/1CzwwAtLSW9sog3acXj8s7Hg3S7kr2HiZ/view?usp=sharing)
-- [Baidu Driver](https://pan.baidu.com/s/1KBS38UAjM7bJ_e6a54eHaA) access:`llot`
+#### Set5
 
-BSD200 dataset:
+- Image format
+    - [Google Driver](https://drive.google.com/file/d/1GJZztdiJ6oBmJe9Ntyyos_psMzM8KY4P/view?usp=sharing)
+    - [Baidu Driver](https://pan.baidu.com/s/1_B97Ga6thSi5h43Wuqyw0Q) access:`llot`
 
-- [Google Driver](https://drive.google.com/file/d/1cdMYTPr77RdOgyAvJPMQqaJHWrD5ma5n/view?usp=sharing)
-- [Baidu Driver](https://pan.baidu.com/s/1xahPw4dNNc3XspMMOuw1Bw) access:`llot`
+#### Set14
+
+- Image format
+    - [Google Driver](https://drive.google.com/file/d/14bxrGB3Nej8vBqxLoqerGX2dhChQKJoa/view?usp=sharing)
+    - [Baidu Driver](https://pan.baidu.com/s/1wy_kf4Kkj2nSkgRUkaLzVA) access:`llot`
+
+#### BSD100
+
+- Image format
+    - [Google Driver](https://drive.google.com/file/d/1xkjWJGZgwWjDZZFN6KWlNMvHXmRORvdG/view?usp=sharing)
+    - [Baidu Driver](https://pan.baidu.com/s/1EBVulUpsQrDmZfqnm4jOZw) access:`llot`
 
 ## Test
 
 Modify the contents of the file as follows.
-
-- `config.py` line 32 `mode="train"` change to `mode="valid"`.
-- `config.py` line 80 `model.load_state_dict(torch.load(f"results/{exp_name}/best.pth", map_location=device))` change to `model.load_state_dict(torch.load("<YOUR-WEIGHTS-PATH>", map_location=device))`.
-- Run `python validate.py`.
+- line 24: `upscale_factor` change to the magnification you need to enlarge. 
+- line 25: `mode` change Set to valid mode.
+- line 73: `model_path` change weight address after training.
 
 ## Train
 
 Modify the contents of the file as follows.
-
-- `config.py` line 32 `mode="valid"` change to `mode="train"`.
-- Run `python train.py`.
+- line 24: `upscale_factor` change to the magnification you need to enlarge. 
+- line 25: `mode` change Set to train mode.
 
 If you want to load weights that you've trained before, modify the contents of the file as follows.
-
-- `config.py` line 32 `mode="valid"` change to `mode="train"`.
-- `config.py` line 48 `start_epoch=0` change to `start_epoch=<RESUME-EPOCH>`.
-- `config.py` line 59 `resume=False` change to `resume=True`.
-- `config.py` line 50 `resume_weight=""` change to `resume_weight="<YOUR-RESUME-WIGHTS-PATH>"`.
-- Run `python train.py`.
+- line 45: `resume` change to `True`. 
+- line 46: `strict` Transfer learning is set to `False`, incremental learning is set to `True`.
+- line 47: `start_epoch` change number of training iterations in the previous round.
+- line 48: `resume_weight` the weight address that needs to be loaded.
 
 ## Result
 
@@ -92,14 +100,11 @@ Source of original paper results: https://arxiv.org/pdf/1501.00092v3.pdf
 
 In the following table, the value in `()` indicates the result of the project, and `-` indicates no test.
 
-| Dataset | Scale |       PSNR       |        SSIM        |
-| :-----: | :---: | :--------------: | :----------------: |
-|  Set5   |   2   | 36.66(**36.25**) | 0.9542(**0.9537**) |
-|  Set14  |   2   | 32.45(**31.99**) | 0.9067(**0.9051**) |
-|  Set5   |   3   | 32.75(**32.51**) | 0.9090(**0.9085**) |
-|  Set14  |   3   | 29.30(**28.83**) | 0.8215(**0.8199**) |
-|  Set5   |   4   | 30.49(**30.12**) | 0.8628(**0.8592**) |
-|  Set14  |   4   | 27.50(**27.03**) | 0.7513(**0.7489**) |
+| Dataset | Scale |       PSNR       |
+| :-----: | :---: | :--------------: |
+|  Set5   |   2   | 36.66(**37.06**) |
+|  Set5   |   3   | 32.75(**33.25**) |
+|  Set5   |   4   | 30.49(**30.42**) |
 
 Low Resolution / Super Resolution / High Resolution
 <span align="center"><img src="assets/result.png"/></span>
@@ -111,14 +116,13 @@ Low Resolution / Super Resolution / High Resolution
 _Chao Dong, Chen Change Loy, Kaiming He, Xiaoou Tang_ <br>
 
 **Abstract** <br>
-We propose a deep learning method for single image super-resolution (SR). Our method directly learns an end-to-end
-mapping between the low/high-resolution images. The mapping is represented as a deep convolutional neural network (CNN)
-that takes the low-resolution image as the input and outputs the high-resolution one. We further show that traditional
-sparse-coding-based SR methods can also be viewed as a deep convolutional network. But unlike traditional methods that
-handle each component separately, our method jointly optimizes all layers. Our deep CNN has a lightweight structure, yet
-demonstrates state-of-the-art restoration quality, and achieves fast speed for practical on-line usage. We explore
-different network structures and parameter settings to achieve trade-offs between performance and speed. Moreover, we
-extend our network to cope with three color channels simultaneously, and show better overall reconstruction quality.
+We propose a deep learning method for single image super-resolution (SR). Our method directly learns an end-to-end mapping between the
+low/high-resolution images. The mapping is represented as a deep convolutional neural network (CNN)
+that takes the low-resolution image as the input and outputs the high-resolution one. We further show that traditional sparse-coding-based SR methods
+can also be viewed as a deep convolutional network. But unlike traditional methods that handle each component separately, our method jointly optimizes
+all layers. Our deep CNN has a lightweight structure, yet demonstrates state-of-the-art restoration quality, and achieves fast speed for practical
+on-line usage. We explore different network structures and parameter settings to achieve trade-offs between performance and speed. Moreover, we extend
+our network to cope with three color channels simultaneously, and show better overall reconstruction quality.
 
 [[Paper]](https://arxiv.org/pdf/1501.00092) [[Author's implements(Caffe)]](http://mmlab.ie.cuhk.edu.hk/projects/SRCNN/SRCNN_train.zip)
 
