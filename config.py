@@ -31,14 +31,10 @@ exp_name = "exp001"
 if mode == "train":
     # Dataset
     # Image format
-    train_image_dir = f"data/T91/X{upscale_factor}/train"
-    valid_image_dir = f"data/T91/X{upscale_factor}/valid"
-    # LMDB format
-    train_lr_lmdb_path = f"data/train_lmdb/LR/T91_X{upscale_factor}_lmdb"
-    train_hr_lmdb_path = f"data/train_lmdb/HR/T91_X{upscale_factor}_lmdb"
-    valid_lr_lmdb_path = f"data/valid_lmdb/LR/T91_X{upscale_factor}_lmdb"
-    valid_hr_lmdb_path = f"data/valid_lmdb/HR/T91_X{upscale_factor}_lmdb"
-    
+    train_image_dir = f"data/T91_General100/train"
+    valid_image_dir = f"data/T91_General100/valid"
+
+    image_size = 72
     batch_size = 16
 
     # Incremental training and migration training
@@ -51,16 +47,16 @@ if mode == "train":
     epochs = 100
 
     # Model optimizer parameter (less training and low PSNR)
-    model_optimizer_name = "sgd"
-    model_lr = 1e-4
-    model_momentum = 0.9
-    model_weight_decay = 1e-7
-    model_nesterov = False
+    # model_optimizer_name = "sgd"
+    # model_lr = 1e-3
+    # model_momentum = 0.9
+    # model_weight_decay = 1e-6
+    # model_nesterov = False
 
     # Modify optimizer parameter (faster training and better PSNR)
-    # model_optimizer_name = "adam"
-    # model_lr = 1e-4
-    # model_betas = (0.9, 0.999)
+    model_optimizer_name = "adam"
+    model_lr = 1e-3
+    model_betas = (0.9, 0.999)
 
 # ==============================================================================
 # Verify configuration
@@ -70,4 +66,4 @@ if mode == "valid":
     sr_dir = f"results/test/{exp_name}"
     hr_dir = f"data/Set5/GTmod12"
 
-    model_path = f"results/{exp_name}/srcnn_best.pth"
+    model_path = f"results/{exp_name}/best.pth"
