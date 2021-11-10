@@ -44,7 +44,7 @@
 
 ```text
 - T91
-    - X2
+    - x2
         - train
             - inputs
                 - ...
@@ -55,7 +55,7 @@
                 - ...
             - target
                 - ...
-    - X4
+    - x3
         - train
             - inputs
                 - ...
@@ -73,23 +73,19 @@
 
 ```text
 - train_lmdb
-    - LR
-        - T91_X4_lmdb
-            - data.mdb
-            - lock.mdb
-    - HR
-        - T91_X4_lmdb
-            - data.mdb
-            - lock.mdb
+    - T91_X2_lr_lmdb
+        - data.mdb
+        - lock.mdb
+    - T91_X2_hr_lmdb
+        - data.mdb
+        - lock.mdb
 - valid_lmdb
-    - LR
-        - T91_X4_lmdb
-            - data.mdb
-            - lock.mdb
-    - HR
-        - T91_X4_lmdb
-            - data.mdb
-            - lock.mdb
+    - T91_X2_lr_lmdb
+        - data.mdb
+        - lock.mdb
+    - T91_X2_hr_lmdb
+        - data.mdb
+        - lock.mdb
 ```
 
 ## Test dataset struct information
