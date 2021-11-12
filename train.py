@@ -22,13 +22,13 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 import config
-from dataset import LMDBDataset
+from dataset import ImageDataset
 from model import SRCNN
 
 
 def load_dataset() -> [DataLoader, DataLoader]:
-    train_datasets = LMDBDataset(config.train_lr_lmdb_path, config.train_hr_lmdb_path)
-    valid_datasets = LMDBDataset(config.valid_lr_lmdb_path, config.valid_hr_lmdb_path)
+    train_datasets = ImageDataset(config.train_image_dir, config.image_size, config.upscale_factor, "train")
+    valid_datasets = ImageDataset(config.train_image_dir, config.image_size, config.upscale_factor, "valid")
     train_dataloader = DataLoader(train_datasets, batch_size=config.batch_size, shuffle=True, pin_memory=True)
     valid_dataloader = DataLoader(valid_datasets, batch_size=config.batch_size, shuffle=False, pin_memory=True)
 
@@ -178,12 +178,12 @@ def main() -> None:
         # Automatically save the model with the highest index
         is_best = psnr > best_psnr
         best_psnr = max(psnr, best_psnr)
-        torch.save(model.state_dict(), os.path.join(samples_dir, f"srcnn_epoch{epoch + 1}.pth"))
+        torch.save(model.state_dict(), os.path.join(samples_dir, f"epoch_{epoch + 1}.pth"))
         if is_best:
-            torch.save(model.state_dict(), os.path.join(results_dir, "srcnn_best.pth"))
+            torch.save(model.state_dict(), os.path.join(results_dir, "best.pth"))
 
     # Save the generator weight under the last Epoch in this stage
-    torch.save(model.state_dict(), os.path.join(results_dir, "srcnn_last.pth"))
+    torch.save(model.state_dict(), os.path.join(results_dir, "last.pth"))
     print("End train SRCNN model.")
 
 
