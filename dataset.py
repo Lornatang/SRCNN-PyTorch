@@ -19,35 +19,46 @@ import lmdb
 from PIL import Image
 from torch import Tensor
 from torch.utils.data import Dataset
-import numpy as np
+from torchvision import transforms
+from torchvision.transforms.functional import InterpolationMode as IMode
 
 import imgproc
 
-__all__ = ["BaseDataset", "LMDBDataset"]
+__all__ = ["ImageDataset", "LMDBDataset"]
 
 
-class BaseDataset(Dataset):
+class ImageDataset(Dataset):
     """Customize the data set loading function and prepare low/high resolution image data in advance.
 
     Args:
-        dataroot (str): training data set address.
+        dataroot         (str): Training data set address
+        image_size       (int): High resolution image size
+        upscale_factor   (int): Image magnification
+        mode             (str): Data set loading method, the training data set is for data enhancement,
+                             and the verification data set is not for data enhancement
 
     """
 
-    def __init__(self, dataroot: str) -> None:
-        super(BaseDataset, self).__init__()
-        # Get the index of all images in the high-resolution folder and low-resolution folder under the data set address.
-        # Note: The high and low resolution file index should be corresponding.
-        lr_dir_path = os.path.join(dataroot, "inputs")
-        hr_dir_path = os.path.join(dataroot, "target")
-        self.filenames = os.listdir(lr_dir_path)
-        self.lr_filenames = [os.path.join(lr_dir_path, x) for x in self.filenames]
-        self.hr_filenames = [os.path.join(hr_dir_path, x) for x in self.filenames]
+    def __init__(self, dataroot: str, image_size: int, upscale_factor: int, mode: str) -> None:
+        super(ImageDataset, self).__init__()
+        self.filenames = [os.path.join(dataroot, x) for x in os.listdir(dataroot)]
+
+        self.lr_transforms = transforms.Compose([
+            transforms.Resize([image_size // upscale_factor, image_size // upscale_factor], interpolation=IMode.BICUBIC),
+            transforms.Resize([image_size, image_size], interpolation=IMode.BICUBIC)
+        ])
+        if mode == "train":
+            self.hr_transforms = transforms.RandomResizedCrop([image_size, image_size])
+        else:
+            self.hr_transforms = transforms.CenterCrop([[image_size, image_size]])
 
     def __getitem__(self, batch_index: int) -> [Tensor, Tensor]:
         # Read a batch of image data
-        lr_image_data = Image.open(self.lr_filenames[batch_index])
-        hr_image_data = Image.open(self.hr_filenames[batch_index])
+        hr_image_data = Image.open(self.filenames[batch_index])
+
+        # Transform image
+        hr_image_data = self.hr_transforms(hr_image_data)
+        lr_image_data = self.lr_transforms(hr_image_data)
 
         # RGB convert YCbCr
         lr_ycbcr_image_data = lr_image_data.convert("YCbCr")
