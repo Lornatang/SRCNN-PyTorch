@@ -46,44 +46,31 @@
 - T91
     - x2
         - train
-            - inputs
-                - ...
-            - target
-                - ...
+            - ...
         - valid
-            - inputs
-                - ...
-            - target
-                - ...
+            - ...
     - x3
         - train
-            - inputs
-                - ...
-            - target
-                - ...
+            - ...
         - valid
-            - inputs
-                - ...
-            - target
-                - ...
-    - ...
+            - ...
 ```
 
 ### LMDB format
 
 ```text
 - train_lmdb
-    - T91_X2_lr_lmdb
+    - T91_LRbicx2_lmdb
         - data.mdb
         - lock.mdb
-    - T91_X2_hr_lmdb
+    - T91_HR_lmdb
         - data.mdb
         - lock.mdb
 - valid_lmdb
-    - T91_X2_lr_lmdb
+    - T91_LRbicx2_lmdb
         - data.mdb
         - lock.mdb
-    - T91_X2_hr_lmdb
+    - T91_HR_lmdb
         - data.mdb
         - lock.mdb
 ```
