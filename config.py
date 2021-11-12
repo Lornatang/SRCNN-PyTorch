@@ -18,7 +18,7 @@ from torch.backends import cudnn as cudnn
 # ==============================================================================
 # General configuration
 # ==============================================================================
-torch.manual_seed(0)
+# torch.manual_seed(0)
 device = torch.device("cuda", 0)
 cudnn.benchmark = True
 upscale_factor = 2
@@ -31,14 +31,15 @@ exp_name = "exp001"
 if mode == "train":
     # Dataset
     # Image format
-    train_image_dir = f"data/T91/X{upscale_factor}/train"
-    valid_image_dir = f"data/T91/X{upscale_factor}/valid"
+    train_image_dir = f"data/T91/train"
+    valid_image_dir = f"data/T91/valid"
     # LMDB format
-    train_lr_lmdb_path = f"data/train_lmdb/LR/T91_X{upscale_factor}_lmdb"
-    train_hr_lmdb_path = f"data/train_lmdb/HR/T91_X{upscale_factor}_lmdb"
-    valid_lr_lmdb_path = f"data/valid_lmdb/LR/T91_X{upscale_factor}_lmdb"
-    valid_hr_lmdb_path = f"data/valid_lmdb/HR/T91_X{upscale_factor}_lmdb"
-    
+    train_lr_lmdb_path = f"data/train_lmdb/T91_LRbicx{upscale_factor}_lmdb"
+    train_hr_lmdb_path = f"data/train_lmdb/T91_HR_lmdb"
+    valid_lr_lmdb_path = f"data/valid_lmdb/T91_LRbicx{upscale_factor}_lmdb"
+    valid_hr_lmdb_path = f"data/valid_lmdb/T91_HR_lmdb"
+
+    image_size = 33
     batch_size = 16
 
     # Incremental training and migration training
@@ -70,4 +71,4 @@ if mode == "valid":
     sr_dir = f"results/test/{exp_name}"
     hr_dir = f"data/Set5/GTmod12"
 
-    model_path = f"results/{exp_name}/srcnn_best.pth"
+    model_path = f"results/{exp_name}/best.pth"
