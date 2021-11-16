@@ -60,19 +60,21 @@
 
 ```text
 - train_lmdb
-    - T91_LRbicx2_lmdb
-        - data.mdb
-        - lock.mdb
-    - T91_HR_lmdb
-        - data.mdb
-        - lock.mdb
+    - SRCNN
+        - T91_LRbicx2_lmdb
+            - data.mdb
+            - lock.mdb
+        - T91_HR_lmdb
+            - data.mdb
+            - lock.mdb
 - valid_lmdb
-    - T91_LRbicx2_lmdb
-        - data.mdb
-        - lock.mdb
-    - T91_HR_lmdb
-        - data.mdb
-        - lock.mdb
+    - SRCNN
+        - T91_LRbicx2_lmdb
+            - data.mdb
+            - lock.mdb
+        - T91_HR_lmdb
+            - data.mdb
+            - lock.mdb
 ```
 
 ## Test dataset struct information
