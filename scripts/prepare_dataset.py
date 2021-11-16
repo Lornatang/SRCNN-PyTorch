@@ -31,7 +31,7 @@ def main(args):
 
     # Determine the LMDB database file size according to the image size
     image = cv2.imread(os.path.abspath(f"{args.image_dir}/{image_file_names[0]}"))
-    image_lmdb_map_size = image.shape[0] * image.shape[1] / args.upscale_factor * image.shape[2] / args.upscale_factor * total_image_number * 1.5
+    image_lmdb_map_size = image.shape[0] * image.shape[1] * image.shape[2] * total_image_number * 1.5
 
     # Open LMDB write environment
     lmdb_env = lmdb.open(args.lmdb_path, map_size=int(image_lmdb_map_size))
