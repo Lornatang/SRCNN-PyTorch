@@ -54,12 +54,11 @@ class ImageDataset(Dataset):
 
     def __getitem__(self, batch_index: int) -> [Tensor, Tensor]:
         # Read a batch of image data
-        hr_image = Image.open(self.filenames[batch_index])
-        lr_image = hr_image.copy()
+        image = Image.open(self.filenames[batch_index])
 
         # Transform image
-        lr_image_data = self.lr_transforms(lr_image)
-        hr_image_data = self.hr_transforms(hr_image)
+        hr_image_data = self.hr_transforms(image)
+        lr_image_data = self.lr_transforms(hr_image_data)
 
         # RGB convert YCbCr
         lr_ycbcr_image_data = lr_image_data.convert("YCbCr")
