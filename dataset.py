@@ -50,15 +50,16 @@ class ImageDataset(Dataset):
         if mode == "train":
             self.hr_transforms = transforms.RandomResizedCrop([image_size, image_size])
         else:
-            self.hr_transforms = transforms.CenterCrop([[image_size, image_size]])
+            self.hr_transforms = transforms.CenterCrop([image_size, image_size])
 
     def __getitem__(self, batch_index: int) -> [Tensor, Tensor]:
         # Read a batch of image data
-        hr_image_data = Image.open(self.filenames[batch_index])
+        hr_image = Image.open(self.filenames[batch_index])
+        lr_image = hr_image.copy()
 
         # Transform image
-        hr_image_data = self.hr_transforms(hr_image_data)
-        lr_image_data = self.lr_transforms(hr_image_data)
+        lr_image_data = self.lr_transforms(lr_image)
+        hr_image_data = self.hr_transforms(hr_image)
 
         # RGB convert YCbCr
         lr_ycbcr_image_data = lr_image_data.convert("YCbCr")
