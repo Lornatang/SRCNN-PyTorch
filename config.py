@@ -34,10 +34,10 @@ if mode == "train":
     train_image_dir = f"data/T91/train"
     valid_image_dir = f"data/T91/valid"
     # LMDB format
-    train_lr_lmdb_path = f"data/train_lmdb/T91_LRbicx{upscale_factor}_lmdb"
-    train_hr_lmdb_path = f"data/train_lmdb/T91_HR_lmdb"
-    valid_lr_lmdb_path = f"data/valid_lmdb/T91_LRbicx{upscale_factor}_lmdb"
-    valid_hr_lmdb_path = f"data/valid_lmdb/T91_HR_lmdb"
+    train_lr_lmdb_path = f"data/train_lmdb/SRCNN/T91_LRbicx{upscale_factor}_lmdb"
+    train_hr_lmdb_path = f"data/train_lmdb/SRCNN/T91_HR_lmdb"
+    valid_lr_lmdb_path = f"data/valid_lmdb/SRCNN/T91_LRbicx{upscale_factor}_lmdb"
+    valid_hr_lmdb_path = f"data/valid_lmdb/SRCNN/T91_HR_lmdb"
 
     image_size = 33
     batch_size = 16
@@ -49,13 +49,13 @@ if mode == "train":
     resume_weight = ""
 
     # Total number of epochs
-    epochs = 100
+    epochs = 18000
 
     # Model optimizer parameter (less training and low PSNR)
     model_optimizer_name = "sgd"
     model_lr = 1e-4
     model_momentum = 0.9
-    model_weight_decay = 1e-7
+    model_weight_decay = 1e-4
     model_nesterov = False
 
     # Modify optimizer parameter (faster training and better PSNR)
