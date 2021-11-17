@@ -100,7 +100,7 @@ def train(model, train_dataloader, criterion, optimizer, epoch, scaler, writer) 
 
         # In this Epoch, every one hundred iterations and the last iteration print the loss function
         # and write it to Tensorboard at the same time
-        if (index + 1) % 20 == 0 or (index + 1) == batches:
+        if (index + 1) % 100 == 0 or (index + 1) == batches:
             iters = index + epoch * batches + 1
             writer.add_scalar("Train/MSE_Loss", loss.item(), iters)
             print(f"Epoch[{epoch + 1:05d}/{config.epochs:05d}]({index + 1:05d}/{batches:05d}) MSE loss: {loss.item():.6f} .")
