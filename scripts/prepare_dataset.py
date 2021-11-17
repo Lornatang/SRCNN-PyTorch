@@ -15,68 +15,36 @@ import argparse
 import os
 import shutil
 
-import cv2
-import lmdb
+from PIL import Image
 from tqdm import tqdm
 
 
 def main(args):
-    if os.path.exists(args.lmdb_path):
-        shutil.rmtree(args.lmdb_path)
+    image_dir = f"{args.output_dir}/train"
 
-    os.makedirs(args.lmdb_path)
+    if os.path.exists(image_dir):
+        shutil.rmtree(image_dir)
+    os.makedirs(image_dir)
 
-    image_file_names = os.listdir(args.image_dir)
-    total_image_number = len(image_file_names)
+    file_names = os.listdir(args.inputs_dir)
+    for file_name in tqdm(file_names, total=len(file_names)):
+        # Use PIL to read high-resolution image
+        image = Image.open(f"{args.inputs_dir}/{file_name}")
 
-    # Determine the LMDB database file size according to the image size
-    image = cv2.imread(os.path.abspath(f"{args.image_dir}/{image_file_names[0]}"))
-    image_lmdb_map_size = image.shape[0] * image.shape[1] * image.shape[2] * total_image_number * 1.5
-
-    # Open LMDB write environment
-    lmdb_env = lmdb.open(args.lmdb_path, map_size=int(image_lmdb_map_size))
-
-    # Easy to read and visualize with DataLoader
-    total_sub_image_number = 1
-    process_bar = tqdm(image_file_names, total=total_image_number)
-
-    # Start over to write the file
-    content = lmdb_env.begin(write=True)
-
-    for file_name in process_bar:
-        # Use OpenCV to read low-resolution and high-resolution images
-        image = cv2.imread(f"{args.image_dir}/{file_name}")
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        image_height, image_width, _ = image.shape
-
-        # Process HR to LR image
-        image = cv2.resize(image, [image_height // args.upscale_factor, image_width // args.upscale_factor], interpolation=cv2.INTER_CUBIC)
-
-        # Label from int to ascii
-        image_key_bytes = str(total_sub_image_number).encode("ascii")
-
-        # LR bytes and HR bytes
-        _, image_encode = cv2.imencode(f".{file_name.split('.')[-1]}", image)
-        image_bytes = image_encode.tobytes()
-
-        process_bar.set_description(f"Write {total_sub_image_number} images to lmdb dataset.")
-        total_sub_image_number += 1
-
-        content.put(image_key_bytes, image_bytes)
-
-    # Submit image data to LMDB database
-    content.commit()
-    # Close all events
-    process_bar.close()
-    lmdb_env.close()
-    print("Writing lmdb database successfully.")
+        for pos_x in range(0, image.size[0] - args.image_size + 1, args.step):
+            for pos_y in range(0, image.size[1] - args.image_size + 1, args.step):
+                # crop box xywh
+                crop_image = image.crop([pos_x, pos_y, pos_x + args.image_size, pos_y + args.image_size])
+                # Save all images
+                crop_image.save(f"{image_dir}/{file_name.split('.')[-2]}_{pos_x}_{pos_y}.{file_name.split('.')[-1]}")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Create LMDB database scripts.")
-    parser.add_argument("--image_dir", type=str, default="T91/train", help="Path to image directory. (Default: ``T91/train``)")
-    parser.add_argument("--lmdb_path", type=str, default="train_lmdb/FSRCNN/T91_HR_lmdb", help="Path to lmdb database. (Default: ``train_lmdb/SRCNN/T91_HR_lmdb``)")
-    parser.add_argument("--upscale_factor", type=int, default=1, help="Image zoom factor. (Default: 1)")
+    parser = argparse.ArgumentParser(description="Prepare database scripts (Use SRCNN functions).")
+    parser.add_argument("--inputs_dir", type=str, default="T91/original", help="Path to input image directory. (Default: `T91/original`)")
+    parser.add_argument("--output_dir", type=str, default="T91", help="Path to generator image directory. (Default: `T91`)")
+    parser.add_argument("--image_size", type=int, default=33, help="Low-resolution image size from raw image. (Default: 33)")
+    parser.add_argument("--step", type=int, default=14, help="Crop image similar to sliding window.  (Default: 14)")
     args = parser.parse_args()
 
     main(args)
