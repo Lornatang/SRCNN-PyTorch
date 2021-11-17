@@ -31,32 +31,34 @@ def main(args):
 
     # Determine the LMDB database file size according to the image size
     image = cv2.imread(os.path.abspath(f"{args.image_dir}/{image_file_names[0]}"))
-    image_lmdb_map_size = image.shape[0] * image.shape[1] * image.shape[2] * total_image_number * 1.5
+    image = cv2.resize(image, [image.shape[0] // args.upscale_factor, image.shape[1] // args.upscale_factor], interpolation=cv2.INTER_CUBIC)
+    _, image_byte = cv2.imencode(f".{image_file_names[0].split('.')[-1]}", image)
+    lmdb_map_size = image_byte.nbytes * total_image_number * 2.5
 
     # Open LMDB write environment
-    lmdb_env = lmdb.open(args.lmdb_path, map_size=int(image_lmdb_map_size))
+    lmdb_env = lmdb.open(args.lmdb_path, map_size=int(lmdb_map_size))
+
+    # Start over to write the file
+    content = lmdb_env.begin(write=True)
 
     # Easy to read and visualize with DataLoader
     total_sub_image_number = 1
     process_bar = tqdm(image_file_names, total=total_image_number)
 
-    # Start over to write the file
-    content = lmdb_env.begin(write=True)
-
-    for image_file_name in process_bar:
+    for file_name in process_bar:
         # Use OpenCV to read low-resolution and high-resolution images
-        image = cv2.imread(f"{args.image_dir}/{image_file_name}")
+        image = cv2.imread(f"{args.image_dir}/{file_name}")
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
         # Process HR to LR image
-        # image = cv2.resize(image, [33 // 3, 33 // 3], interpolation=cv2.INTER_CUBIC)
-        # image = cv2.resize(image, [33, 33], interpolation=cv2.INTER_CUBIC)
+        image = cv2.resize(image, [image.shape[0] // args.upscale_factor, image.shape[1] // args.upscale_factor], interpolation=cv2.INTER_CUBIC)
+        image = cv2.resize(image, [image.shape[0], image.shape[1]], interpolation=cv2.INTER_CUBIC)
 
         # Label from int to ascii
         image_key_bytes = str(total_sub_image_number).encode("ascii")
 
         # LR bytes and HR bytes
-        _, image_encode = cv2.imencode(".png", image)
+        _, image_encode = cv2.imencode(f".{file_name.split('.')[-1]}", image)
         image_bytes = image_encode.tobytes()
 
         process_bar.set_description(f"Write {total_sub_image_number} images to lmdb dataset.")
@@ -75,7 +77,8 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Create LMDB database scripts.")
     parser.add_argument("--image_dir", type=str, default="T91/train", help="Path to image directory. (Default: ``T91/train``)")
-    parser.add_argument("--lmdb_path", type=str, default="train_lmdb/T91_LRbicx2_lmdb", help="Path to lmdb database. (Default: ``train_lmdb/T91_LRbicx2_lmdb``)")
+    parser.add_argument("--lmdb_path", type=str, default="train_lmdb/SRCNN/T91_HR_lmdb", help="Path to lmdb database. (Default: ``train_lmdb/SRCNN/T91_HR_lmdb``)")
+    parser.add_argument("--upscale_factor", type=int, default=1, help="Image zoom factor. (Default: 1)")
     args = parser.parse_args()
 
     main(args)
