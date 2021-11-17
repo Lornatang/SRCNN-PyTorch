@@ -40,7 +40,7 @@ if mode == "train":
     valid_hr_lmdb_path = f"data/valid_lmdb/SRCNN/T91_HR_lmdb"
 
     image_size = 33
-    batch_size = 16
+    batch_size = 128
 
     # Incremental training and migration training
     resume = False
