@@ -83,12 +83,12 @@ def main() -> None:
         hr_tensor_y = hr_tensor_y.half()
         # Only reconstruct the Y channel image data.
         with torch.no_grad():
-            sr_tensor_y = model(lr_tensor_y).clamp_(0.0, 1.0)
+            sr_tensor_y = model(lr_tensor_y)
 
         # Cal PSNR
         total_psnr += 10. * torch.log10(1. / torch.mean((sr_tensor_y - hr_tensor_y) ** 2))
 
-        sr_image_y = sr_tensor_y.mul_(255.0).cpu().squeeze_(0).squeeze_(0).numpy()
+        sr_image_y = sr_tensor_y.mul_(255.0).clamp_(0.0, 255.0).cpu().squeeze_(0).squeeze_(0).numpy()
         sr_image = np.array([sr_image_y, lr_ycbcr[..., 1], lr_ycbcr[..., 2]]).transpose([1, 2, 0])
         sr_image = np.clip(imgproc.convert_ycbcr_to_rgb(sr_image), 0.0, 255.0).astype(np.uint8)
         sr_image = Image.fromarray(sr_image)
