@@ -18,7 +18,7 @@ from torch.backends import cudnn as cudnn
 # ==============================================================================
 # General configuration
 # ==============================================================================
-# torch.manual_seed(0)
+torch.manual_seed(0)
 device = torch.device("cuda", 0)
 cudnn.benchmark = True
 upscale_factor = 2
@@ -41,6 +41,7 @@ if mode == "train":
 
     image_size = 33
     batch_size = 16
+    num_workers = 4
 
     # Incremental training and migration training
     resume = False
@@ -48,8 +49,8 @@ if mode == "train":
     start_epoch = 0
     resume_weight = ""
 
-    # Total number of epochs
-    epochs = 6000
+    # Total number of epochs (1e8 iters)
+    epochs = 72500
 
     # Model optimizer parameter (less training and low PSNR)
     model_optimizer_name = "sgd"
