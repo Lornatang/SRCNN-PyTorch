@@ -43,14 +43,15 @@ class ImageDataset(Dataset):
         super(ImageDataset, self).__init__()
         self.filenames = [os.path.join(dataroot, x) for x in os.listdir(dataroot)]
 
-        self.lr_transforms = transforms.Compose([
-            transforms.Resize([image_size // upscale_factor, image_size // upscale_factor], interpolation=IMode.BICUBIC),
-            transforms.Resize([image_size, image_size], interpolation=IMode.BICUBIC)
-        ])
         if mode == "train":
-            self.hr_transforms = transforms.RandomResizedCrop([image_size, image_size])
+            self.hr_transforms = transforms.RandomCrop([image_size, image_size])
         else:
             self.hr_transforms = transforms.CenterCrop([image_size, image_size])
+
+        self.lr_transforms = transforms.Compose([
+            transforms.Resize([image_size // upscale_factor, image_size // upscale_factor], interpolation=IMode.BICUBIC, antialias=True),
+            transforms.Resize([image_size, image_size], interpolation=IMode.BICUBIC, antialias=True)
+        ])
 
     def __getitem__(self, batch_index: int) -> [Tensor, Tensor]:
         # Read a batch of image data
@@ -60,13 +61,9 @@ class ImageDataset(Dataset):
         hr_image_data = self.hr_transforms(image)
         lr_image_data = self.lr_transforms(hr_image_data)
 
-        # RGB convert YCbCr
-        lr_ycbcr_image_data = lr_image_data.convert("YCbCr")
-        hr_ycbcr_image_data = hr_image_data.convert("YCbCr")
-
         # Only extract the image data of the Y channel
-        lr_y_image_data = lr_ycbcr_image_data.split()[0]
-        hr_y_image_data = hr_ycbcr_image_data.split()[0]
+        lr_y_image_data = lr_image_data.convert("YCbCr").split()[0]
+        hr_y_image_data = hr_image_data.convert("YCbCr").split()[0]
 
         # Convert image data into Tensor stream format (PyTorch).
         # Note: The range of input and output is between [0, 1]
@@ -103,16 +100,12 @@ class LMDBDataset(Dataset):
 
     def __getitem__(self, batch_index: int) -> [Tensor, Tensor]:
         # Read a batch of image data
-        lr_image_data = self.lr_datasets[batch_index]
-        hr_image_data = self.hr_datasets[batch_index]
-
-        # RGB convert YCbCr
-        lr_ycbcr_image_data = lr_image_data.convert("YCbCr")
-        hr_ycbcr_image_data = hr_image_data.convert("YCbCr")
+        lr_image = self.lr_datasets[batch_index]
+        hr_image = self.hr_datasets[batch_index]
 
         # Only extract the image data of the Y channel
-        lr_y_image_data = lr_ycbcr_image_data.split()[0]
-        hr_y_image_data = hr_ycbcr_image_data.split()[0]
+        lr_y_image_data = lr_image.convert("YCbCr").split()[0]
+        hr_y_image_data = hr_image.convert("YCbCr").split()[0]
 
         # Convert image data into Tensor stream format (PyTorch).
         # Note: The range of input and output is between [0, 1]
