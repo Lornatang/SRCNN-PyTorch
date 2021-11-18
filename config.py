@@ -31,8 +31,8 @@ exp_name = "exp001"
 if mode == "train":
     # Dataset
     # Image format
-    train_image_dir = f"data/T91/train"
-    valid_image_dir = f"data/T91/valid"
+    train_image_dir = f"data/T91/SRCNN/train"
+    valid_image_dir = f"data/T91/SRCNN/valid"
     # LMDB format
     train_lr_lmdb_path = f"data/train_lmdb/SRCNN/T91_LRbicx{upscale_factor}_lmdb"
     train_hr_lmdb_path = f"data/train_lmdb/SRCNN/T91_HR_lmdb"
@@ -49,7 +49,7 @@ if mode == "train":
     resume_weight = ""
 
     # Total number of epochs
-    epochs = 18000
+    epochs = 6000
 
     # Model optimizer parameter (less training and low PSNR)
     model_optimizer_name = "sgd"
