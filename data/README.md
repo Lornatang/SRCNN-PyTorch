@@ -44,12 +44,7 @@
 
 ```text
 - T91
-    - x2
-        - train
-            - ...
-        - valid
-            - ...
-    - x3
+    - SRCNN
         - train
             - ...
         - valid
