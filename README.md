@@ -80,7 +80,7 @@ our network to cope with three color channels simultaneously, and show better ov
 Modify the contents of the file as follows.
 - line 24: `upscale_factor` change to the magnification you need to enlarge. 
 - line 25: `mode` change Set to valid mode.
-- line 73: `model_path` change weight address after training.
+- line 75: `model_path` change weight address after training.
 
 ## Train
 
@@ -89,10 +89,10 @@ Modify the contents of the file as follows.
 - line 25: `mode` change Set to train mode.
 
 If you want to load weights that you've trained before, modify the contents of the file as follows.
-- line 45: `resume` change to `True`. 
-- line 46: `strict` Transfer learning is set to `False`, incremental learning is set to `True`.
-- line 47: `start_epoch` change number of training iterations in the previous round.
-- line 48: `resume_weight` the weight address that needs to be loaded.
+- line 47: `resume` change to `True`. 
+- line 48: `strict` Transfer learning is set to `False`, incremental learning is set to `True`.
+- line 49: `start_epoch` change number of training iterations in the previous round.
+- line 50: `resume_weight` the weight address that needs to be loaded.
 
 ## Result
 
@@ -102,9 +102,10 @@ In the following table, the value in `()` indicates the result of the project, a
 
 | Dataset | Scale |       PSNR       |
 | :-----: | :---: | :--------------: |
-|  Set5   |   2   | 36.66(**37.06**) |
-|  Set5   |   3   | 32.75(**33.25**) |
-|  Set5   |   4   | 30.49(**30.42**) |
+|  Set5   |   2   | 36.34(**36.31**) |
+|  Set5   |   3   | 32.39(**33.06**) |
+|  Set5   |   4   | 30.09(**30.08**) |
+|  Set5   |   8   |   -(**25.19**)   |
 
 Low Resolution / Super Resolution / High Resolution
 <span align="center"><img src="assets/result.png"/></span>
