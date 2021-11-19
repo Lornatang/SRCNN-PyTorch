@@ -41,7 +41,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Split train and valid dataset scripts (Use SRCNN functions).")
-    parser.add_argument("--inputs_dir", type=str, default="T91", help="Path to input image directory.")
+    parser.add_argument("--inputs_dir", type=str, default="T91/SRCNN", help="Path to input image directory. (Default: ``T91/SRCNN``)")
     parser.add_argument("--valid_samples_ratio", type=float, default=0.1, help="What percentage of the data is extracted from the training set into the validation set.  (Default: 0.1)")
     args = parser.parse_args()
 

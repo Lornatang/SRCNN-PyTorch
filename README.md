@@ -102,10 +102,10 @@ In the following table, the value in `()` indicates the result of the project, a
 
 | Dataset | Scale |       PSNR       |
 | :-----: | :---: | :--------------: |
-|  Set5   |   2   | 36.34(**36.31**) |
-|  Set5   |   3   | 32.39(**33.06**) |
-|  Set5   |   4   | 30.09(**30.08**) |
-|  Set5   |   8   |   -(**25.19**)   |
+|  Set5   |   2   | 36.34(**36.34**) |
+|  Set5   |   3   | 32.39(**32.44**) |
+|  Set5   |   4   | 30.09(**30.03**) |
+|  Set5   |   8   |   -(**25.22**)   |
 
 Low Resolution / Super Resolution / High Resolution
 <span align="center"><img src="assets/result.png"/></span>
