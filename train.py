@@ -10,66 +10,269 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ==============================================================================
-"""Realize the parameter configuration function of dataset, model, training and verification code."""
+# ============================================================================
+"""File description: Realize the model training function."""
+import os
+import time
+
 import torch
-from torch.backends import cudnn as cudnn
+from torch import nn
+from torch import optim
+from torch.cuda import amp
+from torch.utils.data import DataLoader
+from torch.utils.tensorboard import SummaryWriter
 
-# ==============================================================================
-# General configuration
-# ==============================================================================
-torch.manual_seed(0)
-device = torch.device("cuda", 0)
-cudnn.benchmark = True
-upscale_factor = 2
-mode = "train"
-exp_name = "x2"
+import config
+from dataset import LMDBDataset
+from model import SRCNN
 
-# ==============================================================================
-# Training configuration
-# ==============================================================================
-if mode == "train":
-    # Dataset
-    # Image format
-    train_image_dir = f"data/T91/SRCNN/train"
-    valid_image_dir = f"data/T91/SRCNN/valid"
-    # LMDB format
-    train_lr_lmdb_path = f"data/train_lmdb/SRCNN/T91_LRbicx{upscale_factor}_lmdb"
-    train_hr_lmdb_path = f"data/train_lmdb/SRCNN/T91_HR_lmdb"
-    valid_lr_lmdb_path = f"data/valid_lmdb/SRCNN/T91_LRbicx{upscale_factor}_lmdb"
-    valid_hr_lmdb_path = f"data/valid_lmdb/SRCNN/T91_HR_lmdb"
 
-    image_size = 33
-    batch_size = 16
-    num_workers = 4
+def main():
+    # Create a folder of super-resolution experiment results
+    samples_dir = os.path.join("samples", config.exp_name)
+    results_dir = os.path.join("results", config.exp_name)
+    if not os.path.exists(samples_dir):
+        os.makedirs(samples_dir)
+    if not os.path.exists(results_dir):
+        os.makedirs(results_dir)
 
-    # Incremental training and migration training
-    resume = False
-    strict = True
-    start_epoch = 0
-    resume_weight = ""
+    # Create training process log file
+    writer = SummaryWriter(os.path.join("samples", "logs", config.exp_name))
 
-    # Total number of epochs (1e8 iters)
-    epochs = 72500
+    print("Load train dataset and valid dataset...")
+    train_dataloader, valid_dataloader = load_dataset()
+    print("Load train dataset and valid dataset successfully.")
 
-    # Model optimizer parameter (less training and low PSNR)
-    # model_optimizer_name = "sgd"
-    # model_lr = 1e-4
-    # model_momentum = 0.9
-    # model_weight_decay = 1e-4
-    # model_nesterov = False
+    print("Build SR model...")
+    model = build_model()
+    print("Build SR model successfully.")
 
-    # Modify optimizer parameter (faster training and better PSNR)
-    model_optimizer_name = "adam"
-    model_lr = 1e-4
-    model_betas = (0.9, 0.999)
+    print("Define all loss functions...")
+    criterion = define_loss()
+    print("Define all loss functions successfully.")
 
-# ==============================================================================
-# Verify configuration
-# ==============================================================================
-if mode == "valid":
-    # Test data address
-    sr_dir = f"results/test/{exp_name}"
-    hr_dir = f"data/Set5/GTmod12"
+    print("Define all optimizer functions...")
+    optimizer = define_optimizer(model)
+    print("Define all optimizer functions successfully.")
 
-    model_path = f"results/{exp_name}/last.pth"
+    print("Check whether the training weight is restored...")
+    resume_checkpoint(model)
+    print("Check whether the training weight is restored successfully.")
+
+    # Initialize the gradient scaler
+    scaler = amp.GradScaler()
+
+    # Initialize training to generate network evaluation indicators
+    best_psnr = 0.0
+
+    print("Start train model.")
+    for epoch in range(config.start_epoch, config.epochs):
+        train(model, train_dataloader, criterion, optimizer, epoch, scaler, writer)
+
+        psnr = validate(model, valid_dataloader, criterion, epoch, writer)
+        # Automatically save the model with the highest index
+        is_best = psnr > best_psnr
+        best_psnr = max(psnr, best_psnr)
+        torch.save(model.state_dict(), os.path.join(samples_dir, f"epoch_{epoch + 1}.pth"))
+        if is_best:
+            torch.save(model.state_dict(), os.path.join(results_dir, "best.pth"))
+
+    # Save the generator weight under the last Epoch in this stage
+    torch.save(model.state_dict(), os.path.join(results_dir, "last.pth"))
+    print("End train model.")
+
+
+def load_dataset() -> [DataLoader, DataLoader]:
+    # train_datasets = ImageDataset(config.train_image_dir, config.image_size, config.upscale_factor, "train")
+    # valid_datasets = ImageDataset(config.train_image_dir, config.image_size, config.upscale_factor, "valid")
+    train_datasets = LMDBDataset(config.train_lr_lmdb_path, config.train_hr_lmdb_path)
+    valid_datasets = LMDBDataset(config.valid_lr_lmdb_path, config.valid_hr_lmdb_path)
+    train_dataloader = DataLoader(train_datasets,
+                                  batch_size=config.batch_size,
+                                  shuffle=True,
+                                  num_workers=config.num_workers,
+                                  pin_memory=True,
+                                  drop_last=True,
+                                  persistent_workers=True)
+    valid_dataloader = DataLoader(valid_datasets,
+                                  batch_size=config.batch_size,
+                                  shuffle=False,
+                                  num_workers=config.num_workers,
+                                  pin_memory=True,
+                                  drop_last=True,
+                                  persistent_workers=True)
+
+    return train_dataloader, valid_dataloader
+
+
+def build_model() -> nn.Module:
+    model = SRCNN().to(config.device)
+
+    return model
+
+
+def define_loss() -> nn.MSELoss:
+    criterion = nn.MSELoss().to(config.device)
+
+    return criterion
+
+
+def define_optimizer(model) -> optim:
+    if config.model_optimizer_name == "sgd":
+        optimizer = optim.SGD([{"params": model.features.parameters()},
+                               {"params": model.map.parameters()},
+                               {"params": model.reconstruction.parameters(), "lr": config.model_lr * 1.0}],
+                              lr=config.model_lr,
+                              momentum=config.model_momentum,
+                              weight_decay=config.model_weight_decay,
+                              nesterov=config.model_nesterov)
+    else:
+        optimizer = optim.Adam([{"params": model.features.parameters()},
+                                {"params": model.map.parameters()},
+                                {"params": model.reconstruction.parameters(), "lr": config.model_lr * 0.1}],
+                               lr=config.model_lr,
+                               betas=config.model_betas)
+
+    return optimizer
+
+
+def resume_checkpoint(model):
+    if config.resume:
+        if config.resume_weight != "":
+            model.load_state_dict(torch.load(config.resume_weight), strict=config.strict)
+
+
+def train(model, train_dataloader, criterion, optimizer, epoch, scaler, writer) -> None:
+    # Calculate how many iterations there are under epoch
+    batches = len(train_dataloader)
+
+    batch_time = AverageMeter("Time", ":6.3f")
+    data_time = AverageMeter("Data", ":6.3f")
+    losses = AverageMeter("Loss", ":6.6f")
+    psnres = AverageMeter("PSNR", ":4.2f")
+    progress = ProgressMeter(batches, [batch_time, data_time, losses, psnres], prefix=f"Epoch: [{epoch}]")
+
+    # Put the generator in training mode
+    model.train()
+
+    end = time.time()
+    for index, (lr, hr) in enumerate(train_dataloader):
+        # measure data loading time
+        data_time.update(time.time() - end)
+
+        lr = lr.to(config.device, non_blocking=True)
+        hr = hr.to(config.device, non_blocking=True)
+
+        # Initialize the generator gradient
+        model.zero_grad()
+
+        # Mixed precision training + gradient cropping
+        with amp.autocast():
+            sr = model(lr)
+            loss = criterion(sr, hr)
+        # Gradient zoom
+        scaler.scale(loss).backward()
+        # Update generator weight
+        scaler.step(optimizer)
+        scaler.update()
+
+        # measure accuracy and record loss
+        psnr = 10. * torch.log10(1. / torch.mean((sr - hr) ** 2))
+        losses.update(loss.item(), lr.size(0))
+        psnres.update(psnr.item(), lr.size(0))
+
+        # measure elapsed time
+        batch_time.update(time.time() - end)
+        end = time.time()
+
+        if index % config.print_frequency == 0:
+            progress.display(index)
+
+        # In this Epoch, every one hundred iterations and the last iteration print the loss function
+        # and write it to Tensorboard at the same time
+        if (index + 1) % 100 == 0 or (index + 1) == batches:
+            writer.add_scalar("Train/Loss", loss.item(), index + epoch * batches + 1)
+
+
+def validate(model, valid_dataloader, criterion, epoch, writer) -> float:
+    batch_time = AverageMeter("Time", ":6.3f")
+    losses = AverageMeter("Loss", ":6.6f")
+    psnres = AverageMeter("PSNR", ":4.2f")
+    progress = ProgressMeter(len(valid_dataloader), [batch_time, losses, psnres], prefix="Valid: ")
+
+    # Put the generator in verification mode.
+    model.eval()
+
+    with torch.no_grad():
+        end = time.time()
+        for index, (lr, hr) in enumerate(valid_dataloader):
+            lr = lr.to(config.device, non_blocking=True)
+            hr = hr.to(config.device, non_blocking=True)
+
+            # Calculate the PSNR evaluation index.
+            sr = model(lr)
+            loss = criterion(sr, hr)
+
+            # measure accuracy and record loss
+            psnr = 10. * torch.log10(1. / torch.mean((sr - hr) ** 2))
+            losses.update(loss.item(), lr.size(0))
+            psnres.update(psnr.item(), lr.size(0))
+
+            # measure elapsed time
+            batch_time.update(time.time() - end)
+            end = time.time()
+
+            if index % config.print_frequency == 0:
+                progress.display(index)
+
+        writer.add_scalar("Valid/PSNR", psnres.avg, epoch + 1)
+        # Print evaluation indicators.
+        print(f"* PSNR: {psnres.avg:4.2f}.\n")
+
+    return psnres.avg
+
+
+class AverageMeter(object):
+    """Computes and stores the average and current value"""
+
+    def __init__(self, name, fmt=':f'):
+        self.name = name
+        self.fmt = fmt
+        self.reset()
+
+    def reset(self):
+        self.val = 0
+        self.avg = 0
+        self.sum = 0
+        self.count = 0
+
+    def update(self, val, n=1):
+        self.val = val
+        self.sum += val * n
+        self.count += n
+        self.avg = self.sum / self.count
+
+    def __str__(self):
+        fmtstr = '{name} {val' + self.fmt + '} ({avg' + self.fmt + '})'
+        return fmtstr.format(**self.__dict__)
+
+
+class ProgressMeter(object):
+    def __init__(self, num_batches, meters, prefix=""):
+        self.batch_fmtstr = self._get_batch_fmtstr(num_batches)
+        self.meters = meters
+        self.prefix = prefix
+
+    def display(self, batch):
+        entries = [self.prefix + self.batch_fmtstr.format(batch)]
+        entries += [str(meter) for meter in self.meters]
+        print('\t'.join(entries))
+
+    def _get_batch_fmtstr(self, num_batches):
+        num_digits = len(str(num_batches // 1))
+        fmt = '{:' + str(num_digits) + 'd}'
+        return '[' + fmt + '/' + fmt.format(num_batches) + ']'
+
+
+if __name__ == '__main__':
+    main()
