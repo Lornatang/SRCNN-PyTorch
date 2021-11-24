@@ -68,7 +68,7 @@ def main() -> None:
         lr_image = hr_image.resize([hr_image.width // config.upscale_factor, hr_image.height // config.upscale_factor], Image.BICUBIC)
         lr_image = lr_image.resize([hr_image.width, hr_image.height], Image.BICUBIC)
 
-        # Extract Y channel lr image data.
+        # Extract Y channel lr image data
         lr_image = np.array(lr_image).astype(np.float32)
         lr_ycbcr = imgproc.convert_rgb_to_ycbcr(lr_image)
         lr_y_image = lr_ycbcr[..., 0]
@@ -91,7 +91,7 @@ def main() -> None:
         # Cal PSNR
         total_psnr += 10. * torch.log10(1. / torch.mean((sr_y_tensor - hr_y_tensor) ** 2))
 
-        sr_y_image = sr_y_tensor.mul_(255.0).cpu().squeeze_(0).squeeze_(0).numpy()
+        sr_y_image = sr_y_tensor.mul_(255.0).squeeze_(0).squeeze_(0).cpu().numpy()
         sr_image = np.array([sr_y_image, lr_ycbcr[..., 1], lr_ycbcr[..., 2]]).transpose([1, 2, 0])
         sr_image = np.clip(imgproc.convert_ycbcr_to_rgb(sr_image), 0.0, 255.0).astype(np.uint8)
         sr_image = Image.fromarray(sr_image)
