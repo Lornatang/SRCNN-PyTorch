@@ -273,5 +273,5 @@ class ProgressMeter(object):
         return '[' + fmt + '/' + fmt.format(num_batches) + ']'
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

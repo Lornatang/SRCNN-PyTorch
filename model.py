@@ -36,7 +36,8 @@ class SRCNN(nn.Module):
 
         return out
 
-    # The filter weight of each layer is a Gaussian distribution with zero mean and standard deviation initialized by random extraction 0.001 (deviation is 0).
+    # The filter weight of each layer is a Gaussian distribution with zero mean and
+    # standard deviation initialized by random extraction 0.001 (deviation is 0)
     def _initialize_weights(self) -> None:
         for module in self.modules():
             if isinstance(module, nn.Conv2d):

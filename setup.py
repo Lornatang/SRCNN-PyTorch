@@ -27,7 +27,7 @@ URL = "https://github.com/Lornatang/SRCNN-PyTorch"
 EMAIL = "liu_changyu@dakewe.com"
 AUTHOR = "Liu Goodfellow"
 REQUIRES_PYTHON = ">=3.8.0"
-VERSION = "1.2.2"
+VERSION = "1.2.3"
 
 # Libraries that must be installed.
 REQUIRED = ["torch"]
