@@ -51,7 +51,7 @@ class ImageDataset(Dataset):
 
         self.lr_transforms = transforms.Compose([
             transforms.Resize(image_size // upscale_factor, interpolation=IMode.BICUBIC, antialias=True),
-            transforms.Resize(image_size, interpolation=IMode.BICUBIC, antialias=True)
+            transforms.Resize(image_size, interpolation=IMode.BICUBIC, antialias=True),
         ])
 
     def __getitem__(self, batch_index: int) -> [Tensor, Tensor]:
