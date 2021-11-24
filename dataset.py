@@ -58,19 +58,19 @@ class ImageDataset(Dataset):
         image = Image.open(self.filenames[batch_index])
 
         # Transform image
-        hr_image_data = self.hr_transforms(image)
-        lr_image_data = self.lr_transforms(hr_image_data)
+        hr_image = self.hr_transforms(image)
+        lr_image = self.lr_transforms(hr_image)
 
         # Only extract the image data of the Y channel
-        lr_y_image_data = lr_image_data.convert("YCbCr").split()[0]
-        hr_y_image_data = hr_image_data.convert("YCbCr").split()[0]
+        lr_y_image = lr_image.convert("YCbCr").split()[0]
+        hr_y_image = hr_image.convert("YCbCr").split()[0]
 
         # Convert image data into Tensor stream format (PyTorch).
         # Note: The range of input and output is between [0, 1]
-        lr_tensor_data = imgproc.image2tensor(lr_y_image_data, range_norm=False, half=False)
-        hr_tensor_data = imgproc.image2tensor(hr_y_image_data, range_norm=False, half=False)
+        lr_tensor = imgproc.image2tensor(lr_y_image, range_norm=False, half=False)
+        hr_tensor = imgproc.image2tensor(hr_y_image, range_norm=False, half=False)
 
-        return lr_tensor_data, hr_tensor_data
+        return lr_tensor, hr_tensor
 
     def __len__(self) -> int:
         return len(self.filenames)
