@@ -20,7 +20,7 @@ import lmdb
 from tqdm import tqdm
 
 
-def main(args):
+def main():
     if os.path.exists(args.lmdb_path):
         shutil.rmtree(args.lmdb_path)
 
@@ -81,4 +81,4 @@ if __name__ == "__main__":
     parser.add_argument("--upscale_factor", type=int, default=1, help="Image zoom factor. (Default: 1)")
     args = parser.parse_args()
 
-    main(args)
+    main()

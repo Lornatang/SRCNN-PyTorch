@@ -19,22 +19,22 @@ from PIL import Image
 from tqdm import tqdm
 
 
-def main(inputs_dir: str, output_dir: str, image_size: int, step: int) -> None:
-    image_dir = f"{output_dir}/train"
+def main() -> None:
+    image_dir = f"{args.output_dir}/train"
 
     if os.path.exists(image_dir):
         shutil.rmtree(image_dir)
     os.makedirs(image_dir)
 
-    file_names = os.listdir(inputs_dir)
+    file_names = os.listdir(args.inputs_dir)
     for file_name in tqdm(file_names, total=len(file_names)):
         # Use PIL to read high-resolution image
-        image = Image.open(f"{inputs_dir}/{file_name}")
+        image = Image.open(f"{args.inputs_dir}/{file_name}")
 
-        for pos_x in range(0, image.size[0] - image_size + 1, step):
-            for pos_y in range(0, image.size[1] - image_size + 1, step):
+        for pos_x in range(0, image.size[0] - args.image_size + 1, args.step):
+            for pos_y in range(0, image.size[1] - args.image_size + 1, args.step):
                 # crop box xywh
-                crop_image = image.crop([pos_x, pos_y, pos_x + image_size, pos_y + image_size])
+                crop_image = image.crop([pos_x, pos_y, pos_x + args.image_size, pos_y + args.image_size])
                 # Save all images
                 crop_image.save(f"{image_dir}/{file_name.split('.')[-2]}_{pos_x}_{pos_y}.{file_name.split('.')[-1]}")
     
@@ -47,4 +47,4 @@ if __name__ == "__main__":
     parser.add_argument("--step", type=int, default=14, help="Crop image similar to sliding window.  (Default: 14)")
     args = parser.parse_args()
 
-    main(args.inputs_dir, args.output_dir, args.image_size, args.step)
+    main()
