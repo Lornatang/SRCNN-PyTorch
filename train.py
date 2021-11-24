@@ -23,7 +23,7 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 import config
-from dataset import LMDBDataset
+from dataset import ImageDataset
 from model import SRCNN
 
 
@@ -83,10 +83,8 @@ def main():
 
 
 def load_dataset() -> [DataLoader, DataLoader]:
-    # train_datasets = ImageDataset(config.train_image_dir, config.image_size, config.upscale_factor, "train")
-    # valid_datasets = ImageDataset(config.train_image_dir, config.image_size, config.upscale_factor, "valid")
-    train_datasets = LMDBDataset(config.train_lr_lmdb_path, config.train_hr_lmdb_path)
-    valid_datasets = LMDBDataset(config.valid_lr_lmdb_path, config.valid_hr_lmdb_path)
+    train_datasets = ImageDataset(config.train_image_dir, config.image_size, config.upscale_factor, "train")
+    valid_datasets = ImageDataset(config.train_image_dir, config.image_size, config.upscale_factor, "valid")
     train_dataloader = DataLoader(train_datasets,
                                   batch_size=config.batch_size,
                                   shuffle=True,
@@ -121,7 +119,7 @@ def define_optimizer(model) -> optim:
     if config.model_optimizer_name == "sgd":
         optimizer = optim.SGD([{"params": model.features.parameters()},
                                {"params": model.map.parameters()},
-                               {"params": model.reconstruction.parameters(), "lr": config.model_lr * 1.0}],
+                               {"params": model.reconstruction.parameters(), "lr": config.model_lr * 0.1}],
                               lr=config.model_lr,
                               momentum=config.model_momentum,
                               weight_decay=config.model_weight_decay,
@@ -166,7 +164,7 @@ def train(model, train_dataloader, criterion, optimizer, epoch, scaler, writer) 
         # Initialize the generator gradient
         model.zero_grad()
 
-        # Mixed precision training + gradient cropping
+        # Mixed precision training
         with amp.autocast():
             sr = model(lr)
             loss = criterion(sr, hr)
@@ -209,9 +207,10 @@ def validate(model, valid_dataloader, criterion, epoch, writer) -> float:
             lr = lr.to(config.device, non_blocking=True)
             hr = hr.to(config.device, non_blocking=True)
 
-            # Calculate the PSNR evaluation index.
-            sr = model(lr)
-            loss = criterion(sr, hr)
+            # Mixed precision
+            with amp.autocast():
+                sr = model(lr)
+                loss = criterion(sr, hr)
 
             # measure accuracy and record loss
             psnr = 10. * torch.log10(1. / torch.mean((sr - hr) ** 2))
