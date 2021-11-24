@@ -72,7 +72,10 @@ def image2tensor(image: np.ndarray, range_norm: bool, half: bool) -> torch.Tenso
         >>> tensor_image = image2tensor(image, range_norm=False, half=False)
 
     """
-    tensor = F.to_tensor(image)
+    image = image[..., 0]
+    image /= 255.
+    tensor = torch.from_numpy(image).unsqueeze(0)
+
     if range_norm:
         tensor = tensor.mul_(2.0).sub_(1.0)
     if half:
@@ -81,7 +84,7 @@ def image2tensor(image: np.ndarray, range_norm: bool, half: bool) -> torch.Tenso
     return tensor
 
 
-def tensor2image(tensor: torch.Tensor, range_norm: bool, half: bool) -> np.ndarray:
+def tensor2image(tensor: torch.Tensor, range_norm: bool, half: bool) -> Any:
     """Converts ``torch.Tensor`` to ``PIL.Image``.
 
     Args:
@@ -101,7 +104,7 @@ def tensor2image(tensor: torch.Tensor, range_norm: bool, half: bool) -> np.ndarr
         tensor = tensor.add_(1.0).div_(2.0)
     if half:
         tensor = tensor.half()
-    image = Image.fromarray(tensor.squeeze_(0).mul_(255).clamp_(0, 255).permute(1, 2, 0).to("cpu", torch.uint8).numpy())
+    image = tensor.mul_(255.0).squeeze_(0).squeeze_(0).cpu().numpy()
 
     return image
 

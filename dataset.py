@@ -16,6 +16,7 @@ import io
 import os
 
 import lmdb
+import numpy as np
 from PIL import Image
 from torch import Tensor
 from torch.utils.data import Dataset
@@ -62,13 +63,15 @@ class ImageDataset(Dataset):
         lr_image = self.lr_transforms(hr_image)
 
         # Only extract the image data of the Y channel
-        lr_y_image = lr_image.convert("YCbCr").split()[0]
-        hr_y_image = hr_image.convert("YCbCr").split()[0]
+        lr_image = np.array(lr_image).astype(np.float32)
+        hr_image = np.array(hr_image).astype(np.float32)
+        lr_ycbcr_image = imgproc.convert_rgb_to_ycbcr(lr_image)
+        hr_ycbcr_image = imgproc.convert_rgb_to_ycbcr(hr_image)
 
         # Convert image data into Tensor stream format (PyTorch).
         # Note: The range of input and output is between [0, 1]
-        lr_y_tensor = imgproc.image2tensor(lr_y_image, range_norm=False, half=False)
-        hr_y_tensor = imgproc.image2tensor(hr_y_image, range_norm=False, half=False)
+        lr_y_tensor = imgproc.image2tensor(lr_ycbcr_image, range_norm=False, half=False)
+        hr_y_tensor = imgproc.image2tensor(hr_ycbcr_image, range_norm=False, half=False)
 
         return lr_y_tensor, hr_y_tensor
 
@@ -104,18 +107,20 @@ class LMDBDataset(Dataset):
         hr_image = self.hr_datasets[batch_index]
 
         # Only extract the image data of the Y channel
-        lr_y_image = lr_image.convert("YCbCr").split()[0]
-        hr_y_image = hr_image.convert("YCbCr").split()[0]
+        lr_image = np.array(lr_image).astype(np.float32)
+        hr_image = np.array(hr_image).astype(np.float32)
+        lr_ycbcr_image = imgproc.convert_rgb_to_ycbcr(lr_image)
+        hr_ycbcr_image = imgproc.convert_rgb_to_ycbcr(hr_image)
 
         # Convert image data into Tensor stream format (PyTorch).
         # Note: The range of input and output is between [0, 1]
-        lr_y_tensor = imgproc.image2tensor(lr_y_image, range_norm=False, half=False)
-        hr_y_tensor = imgproc.image2tensor(hr_y_image, range_norm=False, half=False)
+        lr_y_tensor = imgproc.image2tensor(lr_ycbcr_image, range_norm=False, half=False)
+        hr_y_tensor = imgproc.image2tensor(hr_ycbcr_image, range_norm=False, half=False)
 
         return lr_y_tensor, hr_y_tensor
 
     def __len__(self) -> int:
-        return len(self.hr_datasets)
+        return len(self.lr_datasets)
 
     def read_lmdb_dataset(self) -> [list, list]:
         # Open two LMDB database writing environments to read low/high image data
