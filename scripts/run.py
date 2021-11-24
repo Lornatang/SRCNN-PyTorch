@@ -11,9 +11,11 @@ os.system("python3 ./create_lmdb_dataset.py --image_dir ../data/T91/SRCNN/train 
 os.system("python3 ./create_lmdb_dataset.py --image_dir ../data/T91/SRCNN/train --lmdb_path ../data/train_lmdb/SRCNN/T91_LRbicx2_lmdb --upscale_factor 2")
 os.system("python3 ./create_lmdb_dataset.py --image_dir ../data/T91/SRCNN/train --lmdb_path ../data/train_lmdb/SRCNN/T91_LRbicx3_lmdb --upscale_factor 3")
 os.system("python3 ./create_lmdb_dataset.py --image_dir ../data/T91/SRCNN/train --lmdb_path ../data/train_lmdb/SRCNN/T91_LRbicx4_lmdb --upscale_factor 4")
+os.system("python3 ./create_lmdb_dataset.py --image_dir ../data/T91/SRCNN/train --lmdb_path ../data/train_lmdb/SRCNN/T91_LRbicx8_lmdb --upscale_factor 8")
 
 os.system("python3 ./create_lmdb_dataset.py --image_dir ../data/T91/SRCNN/valid --lmdb_path ../data/valid_lmdb/SRCNN/T91_HR_lmdb --upscale_factor 1")
 os.system("python3 ./create_lmdb_dataset.py --image_dir ../data/T91/SRCNN/valid --lmdb_path ../data/valid_lmdb/SRCNN/T91_LRbicx2_lmdb --upscale_factor 2")
 os.system("python3 ./create_lmdb_dataset.py --image_dir ../data/T91/SRCNN/valid --lmdb_path ../data/valid_lmdb/SRCNN/T91_LRbicx3_lmdb --upscale_factor 3")
 os.system("python3 ./create_lmdb_dataset.py --image_dir ../data/T91/SRCNN/valid --lmdb_path ../data/valid_lmdb/SRCNN/T91_LRbicx4_lmdb --upscale_factor 4")
+os.system("python3 ./create_lmdb_dataset.py --image_dir ../data/T91/SRCNN/valid --lmdb_path ../data/valid_lmdb/SRCNN/T91_LRbicx8_lmdb --upscale_factor 8")
 
