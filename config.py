@@ -23,7 +23,7 @@ device = torch.device("cuda", 0)
 cudnn.benchmark = True
 upscale_factor = 2
 mode = "train"
-exp_name = "exp001"
+exp_name = "x2"
 
 # ==============================================================================
 # Training configuration
@@ -72,4 +72,4 @@ if mode == "valid":
     sr_dir = f"results/test/{exp_name}"
     hr_dir = f"data/Set5/GTmod12"
 
-    model_path = f"results/{exp_name}/best.pth"
+    model_path = f"results/{exp_name}/last.pth"
