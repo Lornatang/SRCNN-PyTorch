@@ -19,9 +19,9 @@ import shutil
 from tqdm import tqdm
 
 
-def main(args):
-    train_image_dir = f"{args.inputs_dir}/train"
-    valid_image_dir = f"{args.inputs_dir}/valid"
+def main(inputs_dir: str, valid_samples_ratio: float) -> None:
+    train_image_dir = f"{inputs_dir}/train"
+    valid_image_dir = f"{inputs_dir}/valid"
 
     if not os.path.exists(train_image_dir):
         os.makedirs(train_image_dir)
@@ -29,7 +29,7 @@ def main(args):
         os.makedirs(valid_image_dir)
 
     train_files = os.listdir(train_image_dir)
-    valid_files = random.sample(train_files, int(len(train_files) * args.valid_samples_ratio))
+    valid_files = random.sample(train_files, int(len(train_files) * valid_samples_ratio))
 
     process_bar = tqdm(valid_files, total=len(valid_files))
 
@@ -40,9 +40,9 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Split train and valid dataset scripts (Use SRCNN functions).")
+    parser = argparse.ArgumentParser(description="Split train and valid dataset scripts.")
     parser.add_argument("--inputs_dir", type=str, default="T91/SRCNN", help="Path to input image directory. (Default: ``T91/SRCNN``)")
-    parser.add_argument("--valid_samples_ratio", type=float, default=0.1, help="What percentage of the data is extracted from the training set into the validation set.  (Default: 0.1)")
+    parser.add_argument("--valid_samples_ratio", type=float, default=0.1, help="What percentage of the data is extracted from the training set into the validation set. (Default: 0.1)")
     args = parser.parse_args()
 
-    main(args)
+    main(args.inputs_dir, args.valid_samples_ratio)
