@@ -91,7 +91,7 @@ def main() -> None:
         sr_image = Image.fromarray(sr_image)
         sr_image.save(sr_image_path)
 
-    print(f"PSNR: {total_psnr / total_files:.2f}.\n")
+    print(f"PSNR: {total_psnr / total_files:4.2f}dB.\n")
 
 
 if __name__ == "__main__":

@@ -226,15 +226,16 @@ def validate(model, valid_dataloader, criterion, epoch, writer) -> float:
 
         writer.add_scalar("Valid/PSNR", psnres.avg, epoch + 1)
         # Print evaluation indicators.
-        print(f"* PSNR: {psnres.avg:4.2f}.\n")
+        print(f"* PSNR: {psnres.avg:4.2f}dB.\n")
 
     return psnres.avg
 
 
+# Copy form "https://github.com/pytorch/examples/blob/master/imagenet/main.py"
 class AverageMeter(object):
     """Computes and stores the average and current value"""
 
-    def __init__(self, name, fmt=':f'):
+    def __init__(self, name, fmt=":f"):
         self.name = name
         self.fmt = fmt
         self.reset()
@@ -252,10 +253,11 @@ class AverageMeter(object):
         self.avg = self.sum / self.count
 
     def __str__(self):
-        fmtstr = '{name} {val' + self.fmt + '} ({avg' + self.fmt + '})'
+        fmtstr = "{name} {val" + self.fmt + "} ({avg" + self.fmt + "})"
         return fmtstr.format(**self.__dict__)
 
 
+# Copy form "https://github.com/pytorch/examples/blob/master/imagenet/main.py"
 class ProgressMeter(object):
     def __init__(self, num_batches, meters, prefix=""):
         self.batch_fmtstr = self._get_batch_fmtstr(num_batches)
@@ -265,12 +267,12 @@ class ProgressMeter(object):
     def display(self, batch):
         entries = [self.prefix + self.batch_fmtstr.format(batch)]
         entries += [str(meter) for meter in self.meters]
-        print('\t'.join(entries))
+        print("\t".join(entries))
 
     def _get_batch_fmtstr(self, num_batches):
         num_digits = len(str(num_batches // 1))
-        fmt = '{:' + str(num_digits) + 'd}'
-        return '[' + fmt + '/' + fmt.format(num_batches) + ']'
+        fmt = "{:" + str(num_digits) + "d}"
+        return "[" + fmt + "/" + fmt.format(num_batches) + "]"
 
 
 if __name__ == "__main__":
