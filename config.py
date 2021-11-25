@@ -44,12 +44,12 @@ if mode == "train":
     num_workers = 4
 
     # Incremental training and migration training
-    resume = False
+    resume = True
     strict = True
     start_epoch = 0
-    resume_weight = ""
+    resume_weight = "results/x2_adam/last.pth"
 
-    # Total number of epochs (1e8 iters)
+    # Total number of epochs. SGD: 72500. Adam: 4500
     epochs = 72500
 
     # Model optimizer parameter (less training and low PSNR)
