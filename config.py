@@ -44,10 +44,10 @@ if mode == "train":
     num_workers = 4
 
     # Incremental training and migration training
-    resume = True
+    resume = False
     strict = True
     start_epoch = 0
-    resume_weight = "results/x2_adam/last.pth"
+    resume_weight = ""
 
     # Total number of epochs. SGD: 72500. Adam: 4500
     epochs = 72500
