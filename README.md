@@ -80,7 +80,7 @@ our network to cope with three color channels simultaneously, and show better ov
 Modify the contents of the file as follows.
 - line 24: `upscale_factor` change to the magnification you need to enlarge. 
 - line 25: `mode` change Set to valid mode.
-- line 75: `model_path` change weight address after training.
+- line 77: `model_path` change weight address after training.
 
 ## Train
 
@@ -102,10 +102,9 @@ In the following table, the value in `()` indicates the result of the project, a
 
 | Dataset | Scale |       PSNR       |
 | :-----: | :---: | :--------------: |
-|  Set5   |   2   | 36.34(**36.34**) |
-|  Set5   |   3   | 32.39(**32.44**) |
-|  Set5   |   4   | 30.09(**30.03**) |
-|  Set5   |   8   |   -(**25.22**)   |
+|  Set5   |   2   | 36.34(**36.31**) |
+|  Set5   |   3   | 32.39(**32.31**) |
+|  Set5   |   4   | 30.09(**29.95**) |
 
 Low Resolution / Super Resolution / High Resolution
 <span align="center"><img src="assets/result.png"/></span>
