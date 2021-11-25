@@ -51,8 +51,8 @@ def main():
 
         # Process HR to LR image
         if args.upscale_factor > 1:
-            image = cv2.resize(image, [image.shape[0] // args.upscale_factor, image.shape[1] // args.upscale_factor], interpolation=cv2.INTER_CUBIC)
-            image = cv2.resize(image, [image.shape[0] * args.upscale_factor, image.shape[1] * args.upscale_factor], interpolation=cv2.INTER_CUBIC)
+            image = cv2.resize(image, [args.image_size // args.upscale_factor, args.image_size // args.upscale_factor], interpolation=cv2.INTER_CUBIC)
+            image = cv2.resize(image, [args.image_size, args.image_size], interpolation=cv2.INTER_CUBIC)
 
         # Label from int to ascii
         image_key_bytes = str(total_sub_image_number).encode("ascii")
@@ -78,6 +78,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Create LMDB database scripts.")
     parser.add_argument("--image_dir", type=str, default="T91/SRCNN/train", help="Path to image directory. (Default: ``T91/SRCNN/train``)")
     parser.add_argument("--lmdb_path", type=str, default="train_lmdb/SRCNN/T91_HR_lmdb", help="Path to lmdb database. (Default: ``train_lmdb/SRCNN/T91_HR_lmdb``)")
+    parser.add_argument("--image_size", type=int, default=33, help="Image size from raw image. (Default: 33)")
     parser.add_argument("--upscale_factor", type=int, default=1, help="Image zoom factor. (Default: 1)")
     args = parser.parse_args()
 
