@@ -71,12 +71,12 @@ def main() -> None:
         # Extract Y channel lr image data
         lr_image = np.array(lr_image).astype(np.float32)
         lr_ycbcr_image = imgproc.convert_rgb_to_ycbcr(lr_image)
-        lr_y_tensor = imgproc.image2tensor(lr_ycbcr_image, range_norm=False, half=True).unsqueeze_(0)
+        lr_y_tensor = imgproc.image2tensor(lr_ycbcr_image, range_norm=False, half=True).to(config.device).unsqueeze_(0)
 
         # Extract Y channel hr image data.
         hr_image = np.array(hr_image).astype(np.float32)
         hr_ycbcr_image = imgproc.convert_rgb_to_ycbcr(hr_image)
-        hr_y_tensor = imgproc.image2tensor(hr_ycbcr_image, range_norm=False, half=True).unsqueeze_(0)
+        hr_y_tensor = imgproc.image2tensor(hr_ycbcr_image, range_norm=False, half=True).to(config.device).unsqueeze_(0)
 
         # Only reconstruct the Y channel image data.
         with torch.no_grad():
