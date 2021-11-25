@@ -90,14 +90,12 @@ def load_dataset() -> [DataLoader, DataLoader]:
                                   shuffle=True,
                                   num_workers=config.num_workers,
                                   pin_memory=True,
-                                  drop_last=True,
                                   persistent_workers=True)
     valid_dataloader = DataLoader(valid_datasets,
                                   batch_size=config.batch_size,
                                   shuffle=False,
                                   num_workers=config.num_workers,
                                   pin_memory=True,
-                                  drop_last=True,
                                   persistent_workers=True)
 
     return train_dataloader, valid_dataloader
