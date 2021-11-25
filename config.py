@@ -52,14 +52,14 @@ if mode == "train":
     # Total number of epochs. SGD: 72500. Adam: 4500
     epochs = 72500
 
-    # Model optimizer parameter (less training and low PSNR)
+    # SGD optimizer parameter (less training and low PSNR)
     model_optimizer_name = "sgd"
     model_lr = 1e-4
     model_momentum = 0.9
     model_weight_decay = 1e-4
     model_nesterov = False
 
-    # Modify optimizer parameter (faster training and better PSNR)
+    # Adam optimizer parameter (faster training and better PSNR)
     # model_optimizer_name = "adam"
     # model_lr = 1e-4
     # model_betas = (0.9, 0.999)
