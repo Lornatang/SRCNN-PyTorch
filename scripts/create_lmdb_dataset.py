@@ -20,19 +20,20 @@ import lmdb
 from tqdm import tqdm
 
 
-def main():
+def main(args) -> None:
     if os.path.exists(args.lmdb_path):
         shutil.rmtree(args.lmdb_path)
 
     os.makedirs(args.lmdb_path)
 
-    image_file_names = os.listdir(args.image_dir)
+    image_file_names = os.listdir(args.images_dir)
     total_image_number = len(image_file_names)
 
     # Determine the LMDB database file size according to the image size
-    image = cv2.imread(os.path.abspath(f"{args.image_dir}/{image_file_names[0]}"))
+    image = cv2.imread(os.path.abspath(f"{args.images_dir}/{image_file_names[0]}"))
+    image = cv2.resize(image, [image.shape[0] // args.upscale_factor, image.shape[1] // args.upscale_factor], interpolation=cv2.INTER_CUBIC)
     _, image_byte = cv2.imencode(f".{image_file_names[0].split('.')[-1]}", image)
-    lmdb_map_size = image_byte.nbytes * total_image_number * 3.0
+    lmdb_map_size = image_byte.nbytes * total_image_number * 3
 
     # Open LMDB write environment
     lmdb_env = lmdb.open(args.lmdb_path, map_size=int(lmdb_map_size))
@@ -46,13 +47,11 @@ def main():
 
     for file_name in process_bar:
         # Use OpenCV to read low-resolution and high-resolution images
-        image = cv2.imread(f"{args.image_dir}/{file_name}")
+        image = cv2.imread(f"{args.images_dir}/{file_name}")
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
         # Process HR to LR image
-        if args.upscale_factor > 1:
-            image = cv2.resize(image, [args.image_size // args.upscale_factor, args.image_size // args.upscale_factor], interpolation=cv2.INTER_CUBIC)
-            image = cv2.resize(image, [args.image_size, args.image_size], interpolation=cv2.INTER_CUBIC)
+        image = cv2.resize(image, [image.shape[0] // args.upscale_factor, image.shape[1] // args.upscale_factor], interpolation=cv2.INTER_CUBIC)
 
         # Label from int to ascii
         image_key_bytes = str(total_sub_image_number).encode("ascii")
@@ -76,10 +75,9 @@ def main():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Create LMDB database scripts.")
-    parser.add_argument("--image_dir", type=str, default="T91/SRCNN/train", help="Path to image directory. (Default: ``T91/SRCNN/train``)")
-    parser.add_argument("--lmdb_path", type=str, default="train_lmdb/SRCNN/T91_HR_lmdb", help="Path to lmdb database. (Default: ``train_lmdb/SRCNN/T91_HR_lmdb``)")
-    parser.add_argument("--image_size", type=int, default=33, help="Image size from raw image. (Default: 33)")
-    parser.add_argument("--upscale_factor", type=int, default=1, help="Image zoom factor. (Default: 1)")
+    parser.add_argument("--images_dir", type=str, help="Path to image directory.")
+    parser.add_argument("--lmdb_path", type=str, help="Path to lmdb database.")
+    parser.add_argument("--upscale_factor", type=int, help="Image zoom factor.")
     args = parser.parse_args()
 
-    main()
+    main(args)
