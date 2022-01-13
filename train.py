@@ -43,12 +43,12 @@ def main():
     train_dataloader, valid_dataloader = load_dataset()
     print("Load train dataset and valid dataset successfully.")
 
-    print("Build SR model...")
+    print("Build SRCNN model...")
     model = build_model()
-    print("Build SR model successfully.")
+    print("Build SRCNN model successfully.")
 
     print("Define all loss functions...")
-    criterion = define_loss()
+    psnr_criterion, pixel_criterion = define_loss()
     print("Define all loss functions successfully.")
 
     print("Define all optimizer functions...")
@@ -65,11 +65,11 @@ def main():
     # Initialize training to generate network evaluation indicators
     best_psnr = 0.0
 
-    print("Start train model.")
+    print("Start train SRCNN model.")
     for epoch in range(config.start_epoch, config.epochs):
-        train(model, train_dataloader, criterion, optimizer, epoch, scaler, writer)
+        train(model, train_dataloader, psnr_criterion, pixel_criterion, optimizer, epoch, scaler, writer)
 
-        psnr = validate(model, valid_dataloader, criterion, epoch, writer)
+        psnr = validate(model, valid_dataloader, psnr_criterion, epoch, writer)
         # Automatically save the model with the highest index
         is_best = psnr > best_psnr
         best_psnr = max(psnr, best_psnr)
@@ -79,7 +79,7 @@ def main():
 
     # Save the generator weight under the last Epoch in this stage
     torch.save(model.state_dict(), os.path.join(results_dir, "last.pth"))
-    print("End train model.")
+    print("End train SRCNN model.")
 
 
 def load_dataset() -> [DataLoader, DataLoader]:
@@ -107,10 +107,11 @@ def build_model() -> nn.Module:
     return model
 
 
-def define_loss() -> nn.MSELoss:
-    criterion = nn.MSELoss().to(config.device)
+def define_loss() -> [nn.MSELoss, nn.MSELoss]:
+    psnr_criterion = nn.MSELoss().to(config.device)
+    pixel_criterion = nn.MSELoss().to(config.device)
 
-    return criterion
+    return psnr_criterion, pixel_criterion
 
 
 def define_optimizer(model) -> optim:
@@ -138,7 +139,7 @@ def resume_checkpoint(model):
             model.load_state_dict(torch.load(config.resume_weight), strict=config.strict)
 
 
-def train(model, train_dataloader, criterion, optimizer, epoch, scaler, writer) -> None:
+def train(model, train_dataloader, psnr_criterion, pixel_criterion, optimizer, epoch, scaler, writer) -> None:
     # Calculate how many iterations there are under epoch
     batches = len(train_dataloader)
 
@@ -165,7 +166,8 @@ def train(model, train_dataloader, criterion, optimizer, epoch, scaler, writer) 
         # Mixed precision training
         with amp.autocast():
             sr = model(lr)
-            loss = criterion(sr, hr)
+            loss = pixel_criterion(sr, hr)
+
         # Gradient zoom
         scaler.scale(loss).backward()
         # Update generator weight
@@ -173,7 +175,7 @@ def train(model, train_dataloader, criterion, optimizer, epoch, scaler, writer) 
         scaler.update()
 
         # measure accuracy and record loss
-        psnr = 10. * torch.log10(1. / torch.mean((sr - hr) ** 2))
+        psnr = 10. * torch.log10(1. / psnr_criterion(sr, hr))
         losses.update(loss.item(), lr.size(0))
         psnres.update(psnr.item(), lr.size(0))
 
@@ -181,20 +183,16 @@ def train(model, train_dataloader, criterion, optimizer, epoch, scaler, writer) 
         batch_time.update(time.time() - end)
         end = time.time()
 
-        if index % config.print_frequency == 0:
+        # Writer Loss to file
+        writer.add_scalar("Train/Loss", loss.item(), index + epoch * batches + 1)
+        if index % config.print_frequency == 0 and index != 0:
             progress.display(index)
 
-        # In this Epoch, every one hundred iterations and the last iteration print the loss function
-        # and write it to Tensorboard at the same time
-        if (index + 1) % 100 == 0 or (index + 1) == batches:
-            writer.add_scalar("Train/Loss", loss.item(), index + epoch * batches + 1)
 
-
-def validate(model, valid_dataloader, criterion, epoch, writer) -> float:
+def validate(model, valid_dataloader, psnr_criterion, epoch, writer) -> float:
     batch_time = AverageMeter("Time", ":6.3f")
-    losses = AverageMeter("Loss", ":6.6f")
     psnres = AverageMeter("PSNR", ":4.2f")
-    progress = ProgressMeter(len(valid_dataloader), [batch_time, losses, psnres], prefix="Valid: ")
+    progress = ProgressMeter(len(valid_dataloader), [batch_time, psnres], prefix="Valid: ")
 
     # Put the generator in verification mode.
     model.eval()
@@ -208,12 +206,10 @@ def validate(model, valid_dataloader, criterion, epoch, writer) -> float:
             # Mixed precision
             with amp.autocast():
                 sr = model(lr)
-                loss = criterion(sr, hr)
 
             # measure accuracy and record loss
-            psnr = 10. * torch.log10(1. / torch.mean((sr - hr) ** 2))
-            losses.update(loss.item(), lr.size(0))
-            psnres.update(psnr.item(), lr.size(0))
+            psnr = 10. * torch.log10(1. / psnr_criterion(sr, hr))
+            psnres.update(psnr.item(), hr.size(0))
 
             # measure elapsed time
             batch_time.update(time.time() - end)
@@ -224,7 +220,7 @@ def validate(model, valid_dataloader, criterion, epoch, writer) -> float:
 
         writer.add_scalar("Valid/PSNR", psnres.avg, epoch + 1)
         # Print evaluation indicators.
-        print(f"* PSNR: {psnres.avg:4.2f}dB.\n")
+        print(f"* PSNR: {psnres.avg:4.2f}.\n")
 
     return psnres.avg
 
@@ -255,7 +251,6 @@ class AverageMeter(object):
         return fmtstr.format(**self.__dict__)
 
 
-# Copy form "https://github.com/pytorch/examples/blob/master/imagenet/main.py"
 class ProgressMeter(object):
     def __init__(self, num_batches, meters, prefix=""):
         self.batch_fmtstr = self._get_batch_fmtstr(num_batches)

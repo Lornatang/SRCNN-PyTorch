@@ -13,31 +13,25 @@
 # ==============================================================================
 """Realize the parameter configuration function of dataset, model, training and verification code."""
 import torch
-from torch.backends import cudnn as cudnn
+from torch.backends import cudnn
 
 # ==============================================================================
 # General configuration
 # ==============================================================================
 torch.manual_seed(0)
-device = torch.device("cuda", 0)
+device = torch.device("cuda", 2)
 cudnn.benchmark = True
 upscale_factor = 2
 mode = "train"
-exp_name = "x2"
+exp_name = "train_srcnn_x2"
 
 # ==============================================================================
 # Training configuration
 # ==============================================================================
 if mode == "train":
     # Dataset
-    # Image format
     train_image_dir = f"data/T91/SRCNN/train"
     valid_image_dir = f"data/T91/SRCNN/valid"
-    # LMDB format
-    train_lr_lmdb_path = f"data/train_lmdb/SRCNN/T91_LRbicx{upscale_factor}_lmdb"
-    train_hr_lmdb_path = f"data/train_lmdb/SRCNN/T91_HR_lmdb"
-    valid_lr_lmdb_path = f"data/valid_lmdb/SRCNN/T91_LRbicx{upscale_factor}_lmdb"
-    valid_hr_lmdb_path = f"data/valid_lmdb/SRCNN/T91_HR_lmdb"
 
     image_size = 33
     batch_size = 16
