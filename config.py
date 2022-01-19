@@ -19,7 +19,7 @@ from torch.backends import cudnn
 # General configuration
 # ==============================================================================
 torch.manual_seed(0)
-device = torch.device("cuda", 2)
+device = torch.device("cuda", 0)
 cudnn.benchmark = True
 upscale_factor = 2
 mode = "train"
