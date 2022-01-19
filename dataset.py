@@ -88,9 +88,13 @@ class LMDBDataset(Dataset):
         lr_datasets (list): Low-resolution image data in the dataset
         hr_datasets (list): High-resolution image data in the dataset
 
+    Args:
+        lr_lmdb_path (str): LMDB file address for low-resolution image data
+        hr_lmdb_path (str): LMDB file address for high-resolution image data
+
     """
 
-    def __init__(self, lr_lmdb_path, hr_lmdb_path) -> None:
+    def __init__(self, lr_lmdb_path: str, hr_lmdb_path: str) -> None:
         super(LMDBDataset, self).__init__()
         # Create low/high resolution image array
         self.lr_datasets = []
