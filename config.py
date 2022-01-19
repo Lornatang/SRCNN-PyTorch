@@ -58,7 +58,7 @@ if mode == "train":
     # model_lr = 1e-4
     # model_betas = (0.9, 0.999)
 
-    print_frequency = 100
+    print_frequency = 1000
 
 # ==============================================================================
 # Verify configuration
