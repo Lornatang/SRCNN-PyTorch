@@ -17,6 +17,8 @@ import shutil
 
 import cv2
 import lmdb
+import numpy as np
+from PIL import Image
 from tqdm import tqdm
 
 
@@ -45,14 +47,17 @@ def main(args) -> None:
     process_bar = tqdm(image_file_names, total=total_image_number)
 
     for file_name in process_bar:
-        # Use OpenCV to read low-resolution and high-resolution images
-        image = cv2.imread(f"{args.images_dir}/{file_name}")
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        # Use Pillow to read low-resolution and high-resolution images
+        image = Image.open(f"{args.images_dir}/{file_name}")
 
         # Process HR to LR image
         if args.upscale_factor > 1:
-            lr_image = cv2.resize(image, [image.shape[0] // args.upscale_factor, image.shape[1] // args.upscale_factor], interpolation=cv2.INTER_CUBIC)
-            image = cv2.resize(lr_image, [image.shape[0], image.shape[1]], interpolation=cv2.INTER_CUBIC)
+            lr_image = image.resize([image.width // args.upscale_factor, image.height // args.upscale_factor], resample=Image.BICUBIC)
+            image = lr_image.resize([image.width, image.height], resample=Image.BICUBIC)
+
+        # Pillow convert OpenCV
+        image = cv2.cvtColor(np.asarray(image), cv2.COLOR_RGB2BGR)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
         # Label from int to ascii
         image_key_bytes = str(total_sub_image_number).encode("ascii")
