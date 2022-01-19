@@ -27,18 +27,7 @@ from dataset import ImageDataset
 from model import SRCNN
 
 
-def main():
-    # Create a folder of super-resolution experiment results
-    samples_dir = os.path.join("samples", config.exp_name)
-    results_dir = os.path.join("results", config.exp_name)
-    if not os.path.exists(samples_dir):
-        os.makedirs(samples_dir)
-    if not os.path.exists(results_dir):
-        os.makedirs(results_dir)
-
-    # Create training process log file
-    writer = SummaryWriter(os.path.join("samples", "logs", config.exp_name))
-
+def main() -> None:
     print("Load train dataset and valid dataset...")
     train_dataloader, valid_dataloader = load_dataset()
     print("Load train dataset and valid dataset successfully.")
@@ -64,6 +53,17 @@ def main():
 
     # Initialize training to generate network evaluation indicators
     best_psnr = 0.0
+
+    # Create a folder of super-resolution experiment results
+    samples_dir = os.path.join("samples", config.exp_name)
+    results_dir = os.path.join("results", config.exp_name)
+    if not os.path.exists(samples_dir):
+        os.makedirs(samples_dir)
+    if not os.path.exists(results_dir):
+        os.makedirs(results_dir)
+
+    # Create training process log file
+    writer = SummaryWriter(os.path.join("samples", "logs", config.exp_name))
 
     print("Start train SRCNN model.")
     for epoch in range(config.start_epoch, config.epochs):
