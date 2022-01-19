@@ -90,13 +90,13 @@ def load_dataset() -> [DataLoader, DataLoader]:
                                   shuffle=True,
                                   num_workers=config.num_workers,
                                   pin_memory=True,
-                                  persistent_workers=True)
+                                  persistent_workers=False)
     valid_dataloader = DataLoader(valid_datasets,
                                   batch_size=config.batch_size,
                                   shuffle=False,
                                   num_workers=config.num_workers,
                                   pin_memory=True,
-                                  persistent_workers=True)
+                                  persistent_workers=False)
 
     return train_dataloader, valid_dataloader
 
@@ -147,7 +147,7 @@ def train(model, train_dataloader, psnr_criterion, pixel_criterion, optimizer, e
     data_time = AverageMeter("Data", ":6.3f")
     losses = AverageMeter("Loss", ":6.6f")
     psnres = AverageMeter("PSNR", ":4.2f")
-    progress = ProgressMeter(batches, [batch_time, data_time, losses, psnres], prefix=f"Epoch: [{epoch}]")
+    progress = ProgressMeter(batches, [batch_time, data_time, losses, psnres], prefix=f"Epoch: [{epoch + 1}]")
 
     # Put the generator in training mode
     model.train()
