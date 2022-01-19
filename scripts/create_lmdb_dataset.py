@@ -50,7 +50,9 @@ def main(args) -> None:
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
         # Process HR to LR image
-        image = cv2.resize(image, [image.shape[0] // args.upscale_factor, image.shape[1] // args.upscale_factor], interpolation=cv2.INTER_CUBIC)
+        if args.upscale_factor > 1:
+            lr_image = cv2.resize(image, [image.shape[0] // args.upscale_factor, image.shape[1] // args.upscale_factor], interpolation=cv2.INTER_CUBIC)
+            image = cv2.resize(lr_image, [image.shape[0], image.shape[1]], interpolation=cv2.INTER_CUBIC)
 
         # Label from int to ascii
         image_key_bytes = str(total_sub_image_number).encode("ascii")
