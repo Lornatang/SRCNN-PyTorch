@@ -2,7 +2,8 @@
 
 ## Overview
 
-This repository contains an op-for-op PyTorch reimplementation of [Image Super-Resolution Using Deep Convolutional Networks](https://arxiv.org/abs/1501.00092v3).
+This repository contains an op-for-op PyTorch reimplementation
+of [Image Super-Resolution Using Deep Convolutional Networks](https://arxiv.org/abs/1501.00092v3).
 
 ## Table of contents
 
@@ -78,18 +79,21 @@ our network to cope with three color channels simultaneously, and show better ov
 ## Test
 
 Modify the contents of the file as follows.
-- line 24: `upscale_factor` change to the magnification you need to enlarge. 
+
+- line 24: `upscale_factor` change to the magnification you need to enlarge.
 - line 25: `mode` change Set to valid mode.
 - line 71: `model_path` change weight address after training.
 
 ## Train
 
 Modify the contents of the file as follows.
-- line 24: `upscale_factor` change to the magnification you need to enlarge. 
+
+- line 24: `upscale_factor` change to the magnification you need to enlarge.
 - line 25: `mode` change Set to train mode.
 
 If you want to load weights that you've trained before, modify the contents of the file as follows.
-- line 41: `resume` change to `True`. 
+
+- line 41: `resume` change to `True`.
 - line 42: `strict` Transfer learning is set to `False`, incremental learning is set to `True`.
 - line 43: `start_epoch` change number of training iterations in the previous round.
 - line 44: `resume_weight` the weight address that needs to be loaded.
@@ -102,9 +106,9 @@ In the following table, the value in `()` indicates the result of the project, a
 
 | Dataset | Scale |       PSNR       |
 |:-------:|:-----:|:----------------:|
-|  Set5   |   2   | 36.34(**36.31**) |
-|  Set5   |   3   | 32.39(**32.31**) |
-|  Set5   |   4   | 30.09(**29.95**) |
+|  Set5   |   2   | 36.66(**36.66**) |
+|  Set5   |   3   | 32.45(**32.62**) |
+|  Set5   |   4   | 30.29(**30.20**) |
 
 Low Resolution / Super Resolution / High Resolution
 <span align="center"><img src="assets/result.png"/></span>
