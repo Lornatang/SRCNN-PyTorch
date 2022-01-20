@@ -15,7 +15,7 @@ class SRCNN(nn.Module):
 
         # Non-linear mapping layer.
         self.map = nn.Sequential(
-            nn.Conv2d(64, 32, (1, 1), (1, 1), (0, 0)),
+            nn.Conv2d(64, 32, (5, 5), (1, 1), (2, 2)),
             nn.ReLU(True)
         )
 
