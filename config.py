@@ -43,17 +43,17 @@ if mode == "train":
     start_epoch = 0
     resume_weight = ""
 
-    # Total number of epochs. SGD: 900000. Adam: 90000
-    epochs = 900000
+    # Total number of epochs. SGD: 580000. Adam: 10000
+    epochs = 580000
 
-    # SGD optimizer parameter (less training and low PSNR)
+    # SGD optimizer parameter (less training and better PSNR)
     model_optimizer_name = "sgd"
     model_lr = 1e-4
     model_momentum = 0.9
     model_weight_decay = 1e-4
     model_nesterov = False
 
-    # Adam optimizer parameter (faster training and better PSNR)
+    # Adam optimizer parameter (faster training and low PSNR)
     # model_optimizer_name = "adam"
     # model_lr = 1e-4
     # model_betas = (0.9, 0.999)
