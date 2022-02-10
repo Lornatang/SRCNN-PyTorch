@@ -2,8 +2,7 @@
 
 ## Overview
 
-This repository contains an op-for-op PyTorch reimplementation
-of [Image Super-Resolution Using Deep Convolutional Networks](https://arxiv.org/abs/1501.00092v3).
+This repository contains an op-for-op PyTorch reimplementation of [Image Super-Resolution Using Deep Convolutional Networks](https://arxiv.org/abs/1501.00092v3).
 
 ## Table of contents
 
@@ -35,8 +34,8 @@ our network to cope with three color channels simultaneously, and show better ov
 
 ## Download weights
 
-- [Google Driver](https://drive.google.com/drive/folders/1zPGktAZtph5aMR_gJdV5Q6S5gJEDvY8r?usp=sharing)
-- [Baidu Driver](https://pan.baidu.com/s/1n04tkTauMGLUp4asO1cY3w) access:`llot`
+- [Google Driver](https://drive.google.com/drive/folders/1WZN2bO7SN7bkcQH65VYznQR90LDhiNBd?usp=sharing)
+- [Baidu Driver](https://pan.baidu.com/s/1yNs4rqIb004-NKEdKBJtYg?pwd=llot)
 
 ## Download datasets
 
