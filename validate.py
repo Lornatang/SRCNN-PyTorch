@@ -25,11 +25,6 @@ from model import SRCNN
 
 
 def main() -> None:
-    # Create a folder of super-resolution experiment results
-    results_dir = os.path.join("results", "test", config.exp_name)
-    if not os.path.exists(results_dir):
-        os.makedirs(results_dir)
-
     # Initialize the super-resolution model
     print("Build SRCNN model...")
     model = SRCNN().to(config.device, non_blocking=True)
@@ -40,6 +35,11 @@ def main() -> None:
     state_dict = torch.load(config.model_path, map_location=config.device)
     model.load_state_dict(state_dict)
     print(f"Load SR model weights `{os.path.abspath(config.model_path)}` successfully.")
+
+    # Create a folder of super-resolution experiment results
+    results_dir = os.path.join("results", "test", config.exp_name)
+    if not os.path.exists(results_dir):
+        os.makedirs(results_dir)
 
     # Start the verification mode of the model.
     model.eval()
