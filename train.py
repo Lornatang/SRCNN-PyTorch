@@ -136,7 +136,13 @@ def define_optimizer(model) -> optim:
 def resume_checkpoint(model):
     if config.resume:
         if config.resume_weight != "":
-            model.load_state_dict(torch.load(config.resume_weight), strict=config.strict)
+            # Get pretrained model state dict
+            pretrained_state_dict = torch.load(config.resume_weight)
+            # Extract the fitted model weights
+            new_state_dict = {k: v for k, v in pretrained_state_dict.items() if k in model.state_dict().items()}
+            # Overwrite the pretrained model weights to the current model
+            model.state_dict().update(new_state_dict)
+            model.load_state_dict(model.state_dict(), strict=config.strict)
 
 
 def train(model, train_dataloader, psnr_criterion, pixel_criterion, optimizer, epoch, scaler, writer) -> None:

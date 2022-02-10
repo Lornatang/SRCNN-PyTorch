@@ -23,7 +23,7 @@ device = torch.device("cuda", 0)
 cudnn.benchmark = True
 upscale_factor = 2
 mode = "train"
-exp_name = "train_srcnn_x2"
+exp_name = "srcnn_x2"
 
 # ==============================================================================
 # Training configuration
@@ -58,7 +58,7 @@ if mode == "train":
     # model_lr = 1e-4
     # model_betas = (0.9, 0.999)
 
-    print_frequency = 100
+    print_frequency = 500
 
 # ==============================================================================
 # Verify configuration

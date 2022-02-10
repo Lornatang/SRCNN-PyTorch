@@ -42,7 +42,7 @@ class ImageDataset(Dataset):
 
     def __init__(self, dataroot: str, image_size: int, upscale_factor: int, mode: str) -> None:
         super(ImageDataset, self).__init__()
-        self.file_names = [os.path.join(dataroot, x) for x in os.listdir(dataroot)]
+        self.image_file_names = [os.path.join(dataroot, x) for x in os.listdir(dataroot)]
 
         if mode == "train":
             self.hr_transforms = transforms.RandomCrop(image_size)
@@ -52,13 +52,13 @@ class ImageDataset(Dataset):
             raise "Unsupported data processing model, please use `train` or `valid`."
 
         self.lr_transforms = transforms.Compose([
-            transforms.Resize(image_size // upscale_factor, interpolation=IMode.BICUBIC, antialias=True),
-            transforms.Resize(image_size, interpolation=IMode.BICUBIC, antialias=True),
+            transforms.Resize(image_size // upscale_factor, interpolation=IMode.BICUBIC),
+            transforms.Resize(image_size, interpolation=IMode.BICUBIC),
         ])
 
     def __getitem__(self, batch_index: int) -> [Tensor, Tensor]:
         # Read a batch of image data
-        image = Image.open(self.file_names[batch_index])
+        image = Image.open(self.image_file_names[batch_index])
 
         # Transform image
         hr_image = self.hr_transforms(image)
@@ -78,7 +78,7 @@ class ImageDataset(Dataset):
         return lr_y_tensor, hr_y_tensor
 
     def __len__(self) -> int:
-        return len(self.file_names)
+        return len(self.image_file_names)
 
 
 class LMDBDataset(Dataset):
