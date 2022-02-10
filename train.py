@@ -115,20 +115,13 @@ def define_loss() -> [nn.MSELoss, nn.MSELoss]:
 
 
 def define_optimizer(model) -> optim:
-    if config.model_optimizer_name == "sgd":
-        optimizer = optim.SGD([{"params": model.features.parameters()},
-                               {"params": model.map.parameters()},
-                               {"params": model.reconstruction.parameters(), "lr": config.model_lr * 0.1}],
-                              lr=config.model_lr,
-                              momentum=config.model_momentum,
-                              weight_decay=config.model_weight_decay,
-                              nesterov=config.model_nesterov)
-    else:
-        optimizer = optim.Adam([{"params": model.features.parameters()},
-                                {"params": model.map.parameters()},
-                                {"params": model.reconstruction.parameters(), "lr": config.model_lr * 0.1}],
-                               lr=config.model_lr,
-                               betas=config.model_betas)
+    optimizer = optim.SGD([{"params": model.features.parameters()},
+                           {"params": model.map.parameters()},
+                           {"params": model.reconstruction.parameters(), "lr": config.model_lr * 0.1}],
+                          lr=config.model_lr,
+                          momentum=config.model_momentum,
+                          weight_decay=config.model_weight_decay,
+                          nesterov=config.model_nesterov)
 
     return optimizer
 
