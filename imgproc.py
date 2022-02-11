@@ -135,7 +135,6 @@ def convert_rgb_to_ycbcr(image: Any) -> Any:
     Args:
         image: RGB image data read by ``PIL.Image''.
 
-
     Returns:
         YCbCr image array data.
     """
