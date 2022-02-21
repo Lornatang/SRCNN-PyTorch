@@ -171,12 +171,12 @@ def calculate_weights_indices(in_length: int, out_length: int, scale: float, ker
 
 
 # Code reference `https://github.com/xinntao/BasicSR/blob/master/basicsr/utils/matlab_functions.py`
-def imresize(image: Any, scale: float, antialiasing: bool = True) -> Any:
+def imresize(image: Any, scale_factor: float, antialiasing: bool = True) -> Any:
     """Implementation of `imresize` function in Matlab under Python language.
 
     Args:
         image: The input image.
-        scale (float): Scale factor. The same scale applies for both height and width.
+        scale_factor (float): Scale factor. The same scale applies for both height and width.
         antialiasing (bool): Whether to apply antialiasing when down-sampling operations.
             Caution: Bicubic down-sampling in `PIL` uses antialiasing by default. Default: ``True``.
 
@@ -197,12 +197,12 @@ def imresize(image: Any, scale: float, antialiasing: bool = True) -> Any:
             squeeze_flag = True
 
     in_c, in_h, in_w = image.size()
-    out_h, out_w = math.ceil(in_h * scale), math.ceil(in_w * scale)
+    out_h, out_w = math.ceil(in_h * scale_factor), math.ceil(in_w * scale_factor)
     kernel_width = 4
 
     # get weights and indices
-    weights_h, indices_h, sym_len_hs, sym_len_he = calculate_weights_indices(in_h, out_h, scale, kernel_width, antialiasing)
-    weights_w, indices_w, sym_len_ws, sym_len_we = calculate_weights_indices(in_w, out_w, scale, kernel_width, antialiasing)
+    weights_h, indices_h, sym_len_hs, sym_len_he = calculate_weights_indices(in_h, out_h, scale_factor, kernel_width, antialiasing)
+    weights_w, indices_w, sym_len_ws, sym_len_we = calculate_weights_indices(in_w, out_w, scale_factor, kernel_width, antialiasing)
     # process H dimension
     # symmetric copying
     img_aug = torch.FloatTensor(in_c, in_h + sym_len_hs + sym_len_he, in_w)
