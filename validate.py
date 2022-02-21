@@ -14,9 +14,9 @@
 """File description: Realize the verification function after model training."""
 import os
 
+import cv2
 import numpy as np
 import torch
-from PIL import Image
 from natsort import natsorted
 
 import config
@@ -31,10 +31,10 @@ def main() -> None:
     print("Build SRCNN model successfully.")
 
     # Load the super-resolution model weights
-    print(f"Load SR model weights `{os.path.abspath(config.model_path)}`...")
+    print(f"Load SRCNN model weights `{os.path.abspath(config.model_path)}`...")
     state_dict = torch.load(config.model_path, map_location=config.device)
     model.load_state_dict(state_dict)
-    print(f"Load SR model weights `{os.path.abspath(config.model_path)}` successfully.")
+    print(f"Load SRCNN model weights `{os.path.abspath(config.model_path)}` successfully.")
 
     # Create a folder of super-resolution experiment results
     results_dir = os.path.join("results", "test", config.exp_name)
@@ -59,37 +59,42 @@ def main() -> None:
         hr_image_path = os.path.join(config.hr_dir, file_names[index])
 
         print(f"Processing `{os.path.abspath(hr_image_path)}`...")
-        # Make low-resolution images.
-        hr_image = Image.open(hr_image_path).convert("RGB")
-        hr_image_width = hr_image.width // config.upscale_factor * config.upscale_factor
-        hr_image_height = hr_image.height // config.upscale_factor * config.upscale_factor
-        hr_image = hr_image.resize([hr_image_width, hr_image_height], Image.BICUBIC)
+        # Make high-resolution image
+        hr_image = cv2.imread(hr_image_path).astype(np.float32) / 255.0
+        hr_image_height, hr_image_width = hr_image.shape[:2]
+        hr_image_height_remainder = hr_image_height % 12
+        hr_image_width_remainder = hr_image_width % 12
+        hr_image = hr_image[:hr_image_height - hr_image_height_remainder, :hr_image_width - hr_image_width_remainder, ...]
 
-        lr_image = hr_image.resize([hr_image.width // config.upscale_factor, hr_image.height // config.upscale_factor], Image.BICUBIC)
-        lr_image = lr_image.resize([hr_image.width, hr_image.height], Image.BICUBIC)
+        # Make low-resolution image
+        lr_image = imgproc.imresize(hr_image, 1 / config.upscale_factor)
+        lr_image = imgproc.imresize(lr_image, config.upscale_factor)
 
-        # Extract Y channel lr image data
-        lr_image = np.array(lr_image).astype(np.float32)
-        lr_ycbcr_image = imgproc.convert_rgb_to_ycbcr(lr_image)
-        lr_y_tensor = imgproc.image2tensor(lr_ycbcr_image, range_norm=False, half=True).to(config.device).unsqueeze_(0)
+        # Convert BGR image to YCbCr image
+        lr_ycbcr_image = imgproc.bgr2ycbcr(lr_image, use_y_channel=False)
+        hr_ycbcr_image = imgproc.bgr2ycbcr(hr_image, use_y_channel=False)
 
-        # Extract Y channel hr image data.
-        hr_image = np.array(hr_image).astype(np.float32)
-        hr_ycbcr_image = imgproc.convert_rgb_to_ycbcr(hr_image)
-        hr_y_tensor = imgproc.image2tensor(hr_ycbcr_image, range_norm=False, half=True).to(config.device).unsqueeze_(0)
+        # Split YCbCr image data
+        lr_y_image, lr_cb_image, lr_cr_image = cv2.split(lr_ycbcr_image)
+        hr_y_image, hr_cb_image, hr_cr_image = cv2.split(hr_ycbcr_image)
+
+        # Convert Y image data convert to Y tensor data
+        lr_y_tensor = imgproc.image2tensor(lr_y_image, range_norm=False, half=True).to(config.device).unsqueeze_(0)
+        hr_y_tensor = imgproc.image2tensor(hr_y_image, range_norm=False, half=True).to(config.device).unsqueeze_(0)
 
         # Only reconstruct the Y channel image data.
         with torch.no_grad():
-            sr_y_tensor = model(lr_y_tensor)
+            sr_y_tensor = model(lr_y_tensor).clamp_(0, 1.0)
 
         # Cal PSNR
         total_psnr += 10. * torch.log10(1. / torch.mean((sr_y_tensor - hr_y_tensor) ** 2))
 
+        # Save image
         sr_y_image = imgproc.tensor2image(sr_y_tensor, range_norm=False, half=True)
-        sr_image = np.array([sr_y_image, lr_ycbcr_image[..., 1], lr_ycbcr_image[..., 2]]).transpose([1, 2, 0])
-        sr_image = np.clip(imgproc.convert_ycbcr_to_rgb(sr_image), 0.0, 255.0).astype(np.uint8)
-        sr_image = Image.fromarray(sr_image)
-        sr_image.save(sr_image_path)
+        sr_y_image = sr_y_image.astype(np.float32) / 255.0
+        sr_ycbcr_image = cv2.merge([sr_y_image, hr_cb_image, hr_cr_image])
+        sr_image = imgproc.ycbcr2bgr(sr_ycbcr_image)
+        cv2.imwrite(sr_image_path, sr_image * 255.0)
 
     print(f"PSNR: {total_psnr / total_files:4.2f}dB.\n")
 

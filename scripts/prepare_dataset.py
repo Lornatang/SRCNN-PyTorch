@@ -12,9 +12,9 @@
 # limitations under the License.
 # ==============================================================================
 import argparse
+import multiprocessing
 import os
 import shutil
-from multiprocessing import Pool
 
 from PIL import Image
 from tqdm import tqdm
@@ -30,7 +30,7 @@ def main(args) -> None:
 
     # Splitting images with multiple threads
     progress_bar = tqdm(total=len(image_file_names), unit="image", desc="Split")
-    workers_pool = Pool(args.num_workers)
+    workers_pool = multiprocessing.Pool(args.num_workers)
     for image_file_name in image_file_names:
         workers_pool.apply_async(worker, args=(image_file_name, args), callback=lambda arg: progress_bar.update(1))
     workers_pool.close()
@@ -45,10 +45,11 @@ def worker(image_file_name, args) -> None:
     if image.width >= args.image_size and image.height >= args.image_size:
         for pos_x in range(0, image.width - args.image_size + 1, args.step):
             for pos_y in range(0, image.height - args.image_size + 1, args.step):
-                index += 1
                 crop_image = image.crop([pos_x, pos_y, pos_x + args.image_size, pos_y + args.image_size])
                 # Save all images
                 crop_image.save(f"{args.output_dir}/{image_file_name.split('.')[-2]}_{index:04d}.{image_file_name.split('.')[-1]}")
+
+                index += 1
 
 
 if __name__ == "__main__":

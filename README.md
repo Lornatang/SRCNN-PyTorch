@@ -43,59 +43,35 @@ our network to cope with three color channels simultaneously, and show better ov
 
 #### T91
 
-- Image format
-    - [Google Driver](https://drive.google.com/drive/folders/1PYizfnKq-UtRCDoSy79PGA4FC5HqAqch?usp=sharing)
-    - [Baidu Driver](https://pan.baidu.com/s/1M0u-BPTdokxO452j7vxW4Q) access: `llot`
+- [Google Driver](https://drive.google.com/file/d/197D4a94PybLDJEKsO2xb4RXTW66jbMm6/view?usp=sharing)
+- [Baidu Driver](https://pan.baidu.com/s/1y6_TcL1YhL9aSUQV6APbtA?pwd=llot)
 
-- LMDB format (train)
-    - [Google Driver](https://drive.google.com/drive/folders/1BPqN08QHk_xFnMJWMS8grfh_vesVs8Jf?usp=sharing)
-    - [Baidu Driver](https://pan.baidu.com/s/1eqeORnKcTmGatx2kAG92-A) access: `llot`
+### Download test dataset
 
-- LMDB format (valid)
-    - [Google Driver](https://drive.google.com/drive/folders/1bYqqKk6NJ9wUfxTH2t_LbdMTB04OUicc?usp=sharing)
-    - [Baidu Driver](https://pan.baidu.com/s/1W34MeEtLY0m-bOrnaveVmw) access: `llot`
+Contains Set5, Set14, BSDS100 and BSDS200, etc.
 
-### Download valid dataset
-
-#### Set5
-
-- Image format
-    - [Google Driver](https://drive.google.com/file/d/1GtQuoEN78q3AIP8vkh-17X90thYp_FfU/view?usp=sharing)
-    - [Baidu Driver](https://pan.baidu.com/s/1dlPcpwRPUBOnxlfW5--S5g) access:`llot`
-
-#### Set14
-
-- Image format
-    - [Google Driver](https://drive.google.com/file/d/1CzwwAtLSW9sog3acXj8s7Hg3S7kr2HiZ/view?usp=sharing)
-    - [Baidu Driver](https://pan.baidu.com/s/1KBS38UAjM7bJ_e6a54eHaA) access:`llot`
-
-#### BSD100
-
-- Image format
-    - [Google Driver](https://drive.google.com/file/d/1xkjWJGZgwWjDZZFN6KWlNMvHXmRORvdG/view?usp=sharing)
-    - [Baidu Driver](https://pan.baidu.com/s/1EBVulUpsQrDmZfqnm4jOZw) access:`llot`
+- [Google Driver](https://drive.google.com/drive/folders/1A6lzGeQrFMxPqJehK9s37ce-tPDj20mD?usp=sharing)
+- [Baidu Driver](https://pan.baidu.com/s/1o-8Ty_7q6DiS3ykLU09IVg?pwd=llot)
 
 ## Test
 
 Modify the contents of the file as follows.
 
-- line 28: `upscale_factor` change to the magnification you need to enlarge.
-- line 30: `mode` change Set to valid mode.
-- line 71: `model_path` change weight address after training.
+- line 29: `upscale_factor` change to the magnification you need to enlarge.
+- line 31: `mode` change Set to valid mode.
+- line 65: `model_path` change weight address after training.
 
 ## Train
 
 Modify the contents of the file as follows.
 
-- line 28: `upscale_factor` change to the magnification you need to enlarge.
-- line 30: `mode` change Set to train mode.
+- line 29: `upscale_factor` change to the magnification you need to enlarge.
+- line 31: `mode` change Set to train mode.
 
 If you want to load weights that you've trained before, modify the contents of the file as follows.
 
-- line 47: `resume` change to `True`.
-- line 48: `strict` Transfer learning is set to `False`, incremental learning is set to `True`.
-- line 49: `start_epoch` change number of training iterations in the previous round.
-- line 50: `resume_weight` the weight address that needs to be loaded.
+- line 46: `start_epoch` change number of training iterations in the previous round.
+- line 47: `resume` change weight address that needs to be loaded.
 
 ## Result
 

@@ -14,12 +14,13 @@
 """Realize the parameter configuration function of dataset, model, training and verification code."""
 import torch
 from torch.backends import cudnn
+import random
+import numpy as np
 
-# ==============================================================================
-# General configuration
-# ==============================================================================
 # Random seed to maintain reproducible results
+random.seed(0)
 torch.manual_seed(0)
+np.random.seed(0)
 # Use GPU for training by default
 device = torch.device("cuda", 0)
 # Turning on when the image size does not change during training can speed up training
@@ -31,26 +32,22 @@ mode = "train"
 # Experiment name, easy to save weights and log files
 exp_name = "srcnn_x2"
 
-# ==============================================================================
-# Training configuration
-# ==============================================================================
 if mode == "train":
     # Dataset
-    train_image_dir = f"data/T91/SRCNN/train"
-    valid_image_dir = f"data/T91/SRCNN/valid"
+    train_image_dir = "data/T91/SRCNN/train"
+    valid_image_dir = "data/T91/SRCNN/valid"
+    test_image_dir = "data/Set5/original"
 
-    image_size = 33
+    image_size = 32
     batch_size = 16
     num_workers = 4
 
     # Incremental training and migration training
-    resume = False
-    strict = True
     start_epoch = 0
-    resume_weight = ""
+    resume = ""
 
     # Total number of epochs
-    epochs = 580000
+    epochs = 58000
 
     # SGD optimizer parameter
     model_lr = 1e-4
@@ -58,14 +55,11 @@ if mode == "train":
     model_weight_decay = 1e-4
     model_nesterov = False
 
-    print_frequency = 500
+    print_frequency = 100
 
-# ==============================================================================
-# Verify configuration
-# ==============================================================================
 if mode == "valid":
     # Test data address
     sr_dir = f"results/test/{exp_name}"
     hr_dir = f"data/Set5/GTmod12"
 
-    model_path = f"results/{exp_name}/last.pth"
+    model_path = f"results/{exp_name}/best.pth"

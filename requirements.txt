@@ -1,11 +1,9 @@
 Pillow
-torchvision
 tqdm
 opencv-python
 lmdb
-torch
-scikit-image
 numpy
-matplotlib
+torch
 setuptools
+torchvision
 natsort
