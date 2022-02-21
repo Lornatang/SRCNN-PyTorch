@@ -13,7 +13,7 @@ This repository contains an op-for-op PyTorch reimplementation of [Image Super-R
     - [Download weights](#download-weights)
     - [Download datasets](#download-datasets)
         - [Download train dataset](#download-train-dataset)
-        - [Download valid dataset](#download-valid-dataset)
+        - [Download test dataset](#download-test-dataset)
     - [Test](#test)
     - [Train](#train)
     - [Result](#result)
