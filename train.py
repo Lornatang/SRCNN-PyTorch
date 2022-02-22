@@ -16,17 +16,16 @@ import os
 import time
 from enum import Enum
 
+import config
 import torch
+from dataset import CUDAPrefetcher
+from dataset import TrainValidImageDataset, TestImageDataset
+from model import SRCNN
 from torch import nn
 from torch import optim
 from torch.cuda import amp
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
-
-import config
-from dataset import CUDAPrefetcher
-from dataset import TrainValidImageDataset, TestImageDataset
-from model import SRCNN
 
 
 def main() -> None:
@@ -138,18 +137,13 @@ def define_loss() -> [nn.MSELoss, nn.MSELoss]:
 
 
 def define_optimizer(model) -> optim.SGD:
-    # optimizer = optim.SGD([{"params": model.features.parameters()},
-    #                        {"params": model.map.parameters()},
-    #                        {"params": model.reconstruction.parameters(), "lr": config.model_lr * 0.1}],
-    #                       lr=config.model_lr,
-    #                       momentum=config.model_momentum,
-    #                       weight_decay=config.model_weight_decay,
-    #                       nesterov=config.model_nesterov)
-    optimizer = optim.Adam([{"params": model.features.parameters()},
-                            {"params": model.map.parameters()},
-                            {"params": model.reconstruction.parameters(), "lr": config.model_lr * 0.1}],
-                           lr=config.model_lr,
-                           betas=(0.9, 0.99))
+    optimizer = optim.SGD([{"params": model.features.parameters()},
+                           {"params": model.map.parameters()},
+                           {"params": model.reconstruction.parameters(), "lr": config.model_lr * 0.1}],
+                          lr=config.model_lr,
+                          momentum=config.model_momentum,
+                          weight_decay=config.model_weight_decay,
+                          nesterov=config.model_nesterov)
     return optimizer
 
 
