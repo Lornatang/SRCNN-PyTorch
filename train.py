@@ -13,19 +13,21 @@
 # ============================================================================
 """File description: Realize the model training function."""
 import os
+import shutil
 import time
 from enum import Enum
 
-import config
 import torch
-from dataset import CUDAPrefetcher
-from dataset import TrainValidImageDataset, TestImageDataset
-from model import SRCNN
 from torch import nn
 from torch import optim
 from torch.cuda import amp
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
+
+import config
+from dataset import CUDAPrefetcher
+from dataset import TrainValidImageDataset, TestImageDataset
+from model import SRCNN
 
 
 def main() -> None:
@@ -60,14 +62,20 @@ def main() -> None:
 
     print("Check whether the pretrained model is restored...")
     if config.resume:
-        # Load pretrained model
-        pretrained_state_dict = torch.load(config.resume, map_location=lambda storage, loc: storage)
-        # Extract the fitted model weights
-        new_state_dict = {k: v for k, v in pretrained_state_dict.items() if k in model.state_dict().items()}
+        # Load checkpoint model
+        checkpoint = torch.load(config.resume, map_location=lambda storage, loc: storage)
+        # Restore the parameters in the training node to this point
+        config.start_epoch = checkpoint["epoch"]
+        best_psnr = checkpoint["best_psnr"]
+        # Load checkpoint state dict. Extract the fitted model weights
+        new_state_dict = {k: v for k, v in checkpoint["state_dict"].items() if k in model.state_dict().items()}
         # Overwrite the pretrained model weights to the current model
         model.state_dict().update(new_state_dict)
         model.load_state_dict(model.state_dict())
         # Load the optimizer model
+        optimizer.load_state_dict(checkpoint["optimizer"])
+        # Load the scheduler model
+        # scheduler.load_state_dict(checkpoint["scheduler"])
         print("Loaded pretrained model weights.")
 
     for epoch in range(config.start_epoch, config.epochs):
@@ -79,11 +87,16 @@ def main() -> None:
         # Automatically save the model with the highest index
         is_best = psnr > best_psnr
         best_psnr = max(psnr, best_psnr)
-        torch.save(model.state_dict(), os.path.join(samples_dir, f"epoch_{epoch + 1}.pth"))
+        torch.save({"epoch": epoch,
+                    "best_psnr": best_psnr,
+                    "state_dict": model.state_dict(),
+                    "optimizer": optimizer.state_dict(),
+                    "scheduler": None},
+                   os.path.join(samples_dir, f"epoch_{epoch + 1}.pth"))
         if is_best:
-            torch.save(model.state_dict(), os.path.join(results_dir, "best.pth"))
+            shutil.copyfile(os.path.join(samples_dir, f"epoch_{epoch + 1}.pth"), os.path.join(results_dir, "best.pth"))
         if (epoch + 1) == config.epochs:
-            torch.save(model.state_dict(), os.path.join(results_dir, "last.pth"))
+            shutil.copyfile(os.path.join(samples_dir, f"epoch_{epoch + 1}.pth"), os.path.join(results_dir, "last.pth"))
 
 
 def load_dataset() -> [CUDAPrefetcher, CUDAPrefetcher, CUDAPrefetcher]:

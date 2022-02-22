@@ -36,7 +36,7 @@ if mode == "train":
     # Dataset
     train_image_dir = "data/T91/SRCNN/train"
     valid_image_dir = "data/T91/SRCNN/valid"
-    test_image_dir = "data/Set5/original"
+    test_image_dir = "data/Set5/GTmod12"
 
     image_size = 32
     batch_size = 16

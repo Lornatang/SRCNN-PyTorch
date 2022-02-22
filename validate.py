@@ -27,13 +27,13 @@ from model import SRCNN
 def main() -> None:
     # Initialize the super-resolution model
     print("Build SRCNN model...")
-    model = SRCNN().to(config.device, non_blocking=True)
+    model = SRCNN().to(config.device)
     print("Build SRCNN model successfully.")
 
     # Load the super-resolution model weights
     print(f"Load SRCNN model weights `{os.path.abspath(config.model_path)}`...")
-    state_dict = torch.load(config.model_path, map_location=config.device)
-    model.load_state_dict(state_dict)
+    checkpoint = torch.load(config.model_path, map_location=lambda storage, loc: storage)
+    model.load_state_dict(checkpoint["state_dict"])
     print(f"Load SRCNN model weights `{os.path.abspath(config.model_path)}` successfully.")
 
     # Create a folder of super-resolution experiment results
