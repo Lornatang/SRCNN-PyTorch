@@ -31,6 +31,9 @@ from model import SRCNN
 
 
 def main() -> None:
+    # Initialize training to generate network evaluation indicators
+    best_psnr = 0.0
+    
     train_prefetcher, valid_prefetcher, test_prefetcher = load_dataset()
     print("Load all datasets successfully")
 
@@ -45,9 +48,6 @@ def main() -> None:
 
     # Initialize the gradient scaler
     scaler = amp.GradScaler()
-
-    # Initialize training to generate network evaluation indicators
-    best_psnr = 0.0
 
     # Create a folder of super-resolution experiment results
     samples_dir = os.path.join("samples", config.exp_name)
