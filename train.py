@@ -92,11 +92,11 @@ def main() -> None:
                     "state_dict": model.state_dict(),
                     "optimizer": optimizer.state_dict(),
                     "scheduler": None},
-                   os.path.join(samples_dir, f"epoch_{epoch + 1}.pth"))
+                   os.path.join(samples_dir, f"epoch_{epoch + 1}.pth.tar"))
         if is_best:
-            shutil.copyfile(os.path.join(samples_dir, f"epoch_{epoch + 1}.pth"), os.path.join(results_dir, "best.pth"))
+            shutil.copyfile(os.path.join(samples_dir, f"epoch_{epoch + 1}.pth.tar"), os.path.join(results_dir, "best.pth.tar"))
         if (epoch + 1) == config.epochs:
-            shutil.copyfile(os.path.join(samples_dir, f"epoch_{epoch + 1}.pth"), os.path.join(results_dir, "last.pth"))
+            shutil.copyfile(os.path.join(samples_dir, f"epoch_{epoch + 1}.pth.tar"), os.path.join(results_dir, "last.pth.tar"))
 
 
 def load_dataset() -> [CUDAPrefetcher, CUDAPrefetcher, CUDAPrefetcher]:
