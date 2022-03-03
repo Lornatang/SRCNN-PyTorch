@@ -68,10 +68,11 @@ def main() -> None:
         config.start_epoch = checkpoint["epoch"]
         best_psnr = checkpoint["best_psnr"]
         # Load checkpoint state dict. Extract the fitted model weights
-        new_state_dict = {k: v for k, v in checkpoint["state_dict"].items() if k in model.state_dict().items()}
+        model_state_dict = model.state_dict()
+        new_state_dict = {k: v for k, v in checkpoint["state_dict"].items() if k in model_state_dict}
         # Overwrite the pretrained model weights to the current model
-        model.state_dict().update(new_state_dict)
-        model.load_state_dict(model.state_dict())
+        model_state_dict.update(new_state_dict)
+        model.load_state_dict(model_state_dict)
         # Load the optimizer model
         optimizer.load_state_dict(checkpoint["optimizer"])
         # Load the scheduler model
