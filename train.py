@@ -33,7 +33,7 @@ from model import SRCNN
 def main() -> None:
     # Initialize training to generate network evaluation indicators
     best_psnr = 0.0
-    
+
     train_prefetcher, valid_prefetcher, test_prefetcher = load_dataset()
     print("Load all datasets successfully")
 
@@ -104,7 +104,7 @@ def load_dataset() -> [CUDAPrefetcher, CUDAPrefetcher, CUDAPrefetcher]:
     # Load train, test and valid datasets
     train_datasets = TrainValidImageDataset(config.train_image_dir, config.image_size, config.upscale_factor, mode="Train")
     valid_datasets = TrainValidImageDataset(config.valid_image_dir, config.image_size, config.upscale_factor, mode="Valid")
-    test_datasets = TestImageDataset(config.test_image_dir, config.upscale_factor)
+    test_datasets = TestImageDataset(config.test_lr_image_dir, config.test_hr_image_dir, config.upscale_factor)
 
     # Generator all dataloader
     train_dataloader = DataLoader(train_datasets,

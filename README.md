@@ -46,16 +46,16 @@ Contains T91, Set5, Set14, BSDS100 and BSDS200, etc.
 
 Modify the contents of the file as follows.
 
-- line 29: `upscale_factor` change to the magnification you need to enlarge.
-- line 31: `mode` change Set to valid mode.
-- line 65: `model_path` change weight address after training.
+- line 28: `upscale_factor` change to the magnification you need to enlarge.
+- line 30: `mode` change Set to valid mode.
+- line 66: `model_path` change weight address after training.
 
 ## Train
 
 Modify the contents of the file as follows.
 
-- line 29: `upscale_factor` change to the magnification you need to enlarge.
-- line 31: `mode` change Set to train mode.
+- line 28: `upscale_factor` change to the magnification you need to enlarge.
+- line 30: `mode` change Set to train mode.
 
 If you want to load weights that you've trained before, modify the contents of the file as follows.
 

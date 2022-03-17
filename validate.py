@@ -26,12 +26,10 @@ from model import SRCNN
 
 def main() -> None:
     # Initialize the super-resolution model
-    print("Build SRCNN model...")
     model = SRCNN().to(config.device)
     print("Build SRCNN model successfully.")
 
     # Load the super-resolution model weights
-    print(f"Load SRCNN model weights `{os.path.abspath(config.model_path)}`...")
     checkpoint = torch.load(config.model_path, map_location=lambda storage, loc: storage)
     model.load_state_dict(checkpoint["state_dict"])
     print(f"Load SRCNN model weights `{os.path.abspath(config.model_path)}` successfully.")
@@ -55,20 +53,26 @@ def main() -> None:
     total_files = len(file_names)
 
     for index in range(total_files):
+        lr_image_path = os.path.join(config.lr_dir, file_names[index])
         sr_image_path = os.path.join(config.sr_dir, file_names[index])
         hr_image_path = os.path.join(config.hr_dir, file_names[index])
 
-        print(f"Processing `{os.path.abspath(hr_image_path)}`...")
+        print(f"Processing `{os.path.abspath(lr_image_path)}`...")
+        # Make low-resolution image
+        lr_image = cv2.imread(lr_image_path).astype(np.float32) / 255.0
+        lr_image_height, lr_image_width = lr_image.shape[:2]
+        lr_image_height_remainder = lr_image_height % config.upscale_factor
+        lr_image_width_remainder = lr_image_width % config.upscale_factor
+        lr_image = lr_image[:lr_image_height - lr_image_height_remainder, :lr_image_width - lr_image_width_remainder, ...]
+        lr_image = imgproc.imresize(lr_image, 1 / config.upscale_factor)
+        lr_image = imgproc.imresize(lr_image, config.upscale_factor)
+
         # Make high-resolution image
         hr_image = cv2.imread(hr_image_path).astype(np.float32) / 255.0
         hr_image_height, hr_image_width = hr_image.shape[:2]
-        hr_image_height_remainder = hr_image_height % 12
-        hr_image_width_remainder = hr_image_width % 12
+        hr_image_height_remainder = hr_image_height % config.upscale_factor
+        hr_image_width_remainder = hr_image_width % config.upscale_factor
         hr_image = hr_image[:hr_image_height - hr_image_height_remainder, :hr_image_width - hr_image_width_remainder, ...]
-
-        # Make low-resolution image
-        lr_image = imgproc.imresize(hr_image, 1 / config.upscale_factor)
-        lr_image = imgproc.imresize(lr_image, config.upscale_factor)
 
         # Convert BGR image to YCbCr image
         lr_ycbcr_image = imgproc.bgr2ycbcr(lr_image, use_y_channel=False)
