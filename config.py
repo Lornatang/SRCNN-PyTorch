@@ -11,11 +11,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Realize the parameter configuration function of dataset, model, training and verification code."""
+import random
+
+import numpy as np
 import torch
 from torch.backends import cudnn
-import random
-import numpy as np
 
 # Random seed to maintain reproducible results
 random.seed(0)
@@ -36,7 +36,8 @@ if mode == "train":
     # Dataset
     train_image_dir = "data/T91/SRCNN/train"
     valid_image_dir = "data/T91/SRCNN/valid"
-    test_image_dir = "data/Set5/GTmod12"
+    test_lr_image_dir = "data/Set5/GTmod12"
+    test_hr_image_dir = "data/Set5/GTmod12"
 
     image_size = 32
     batch_size = 16
@@ -59,6 +60,7 @@ if mode == "train":
 
 if mode == "valid":
     # Test data address
+    lr_dir = f"data/Set5/GTmod12"
     sr_dir = f"results/test/{exp_name}"
     hr_dir = f"data/Set5/GTmod12"
 
