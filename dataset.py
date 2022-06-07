@@ -1,4 +1,4 @@
-# Copyright 2021 Dakewe Biotech Corporation. All Rights Reserved.
+# Copyright 2022 Dakewe Biotech Corporation. All Rights Reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
@@ -11,7 +11,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Realize the function of dataset preparation."""
 import os
 import queue
 import threading
@@ -62,12 +61,12 @@ class TrainValidImageDataset(Dataset):
         else:
             raise ValueError("Unsupported data processing model, please use `Train` or `Valid`.")
 
-        lr_image = imgproc.imresize(hr_image, 1 / self.upscale_factor)
-        lr_image = imgproc.imresize(lr_image, self.upscale_factor)
+        lr_image = imgproc.image_resize(hr_image, 1 / self.upscale_factor)
+        lr_image = imgproc.image_resize(lr_image, self.upscale_factor)
 
         # Only extract the image data of the Y channel
-        lr_y_image = imgproc.bgr2ycbcr(lr_image, use_y_channel=True)
-        hr_y_image = imgproc.bgr2ycbcr(hr_image, use_y_channel=True)
+        lr_y_image = imgproc.bgr2ycbcr(lr_image, only_use_y_channel=True)
+        hr_y_image = imgproc.bgr2ycbcr(hr_image, only_use_y_channel=True)
 
         # Convert image data into Tensor stream format (PyTorch).
         # Note: The range of input and output is between [0, 1]
@@ -103,12 +102,12 @@ class TestImageDataset(Dataset):
         hr_image = cv2.imread(self.hr_image_file_names[batch_index], cv2.IMREAD_UNCHANGED).astype(np.float32) / 255.
 
         # Use high-resolution image to make low-resolution image
-        lr_image = imgproc.imresize(lr_image, 1 / self.upscale_factor)
-        lr_image = imgproc.imresize(lr_image, self.upscale_factor)
+        lr_image = imgproc.image_resize(lr_image, 1 / self.upscale_factor)
+        lr_image = imgproc.image_resize(lr_image, self.upscale_factor)
 
         # Only extract the image data of the Y channel
-        lr_y_image = imgproc.bgr2ycbcr(lr_image, use_y_channel=True)
-        hr_y_image = imgproc.bgr2ycbcr(hr_image, use_y_channel=True)
+        lr_y_image = imgproc.bgr2ycbcr(lr_image, only_use_y_channel=True)
+        hr_y_image = imgproc.bgr2ycbcr(hr_image, only_use_y_channel=True)
 
         # Convert image data into Tensor stream format (PyTorch).
         # Note: The range of input and output is between [0, 1]

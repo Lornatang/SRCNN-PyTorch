@@ -1,4 +1,4 @@
-# Copyright 2021 Dakewe Biotech Corporation. All Rights Reserved.
+# Copyright 2022 Dakewe Biotech Corporation. All Rights Reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
@@ -28,23 +28,21 @@ cudnn.benchmark = True
 # Image magnification factor
 upscale_factor = 2
 # Current configuration parameter method
-mode = "train"
+mode = "test"
 # Experiment name, easy to save weights and log files
-exp_name = "srcnn_x2"
+exp_name = "SRCNN_x2"
 
 if mode == "train":
     # Dataset
-    train_image_dir = "data/T91/SRCNN/train"
-    valid_image_dir = "data/T91/SRCNN/valid"
-    test_lr_image_dir = "data/Set5/GTmod12"
-    test_hr_image_dir = "data/Set5/GTmod12"
+    train_image_dir = "./data/T91/SRCNN/train"
+    test_lr_image_dir = "./data/Set5/GTmod12"
+    test_hr_image_dir = "./data/Set5/GTmod12"
 
     image_size = 32
     batch_size = 16
     num_workers = 4
 
     # Incremental training and migration training
-    start_epoch = 0
     resume = ""
 
     # Total number of epochs
@@ -56,12 +54,13 @@ if mode == "train":
     model_weight_decay = 1e-4
     model_nesterov = False
 
-    print_frequency = 100
+    # How many iterations to print the training result
+    print_frequency = 200
 
-if mode == "valid":
+if mode == "test":
     # Test data address
-    lr_dir = f"data/Set5/GTmod12"
-    sr_dir = f"results/test/{exp_name}"
-    hr_dir = f"data/Set5/GTmod12"
+    lr_dir = f"./data/Set5/GTmod12"
+    sr_dir = f"./results/test/{exp_name}"
+    hr_dir = f"./data/Set5/GTmod12"
 
-    model_path = f"results/{exp_name}/best.pth.tar"
+    model_path = "results/pretrained_models/srcnn_x2-T91-7d6e0623.pth.tar"
