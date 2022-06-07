@@ -75,7 +75,7 @@ In the following table, the psnr value in `()` indicates the result of the proje
 python ./inference.py --inputs_path ./figure/butterfly_lr.png --output_path ./figure/butterfly_sr.png --weights_path ./results/pretrained_models/srcnn_x2-T91-7d6e0623.pth.tar
 ```
 
-Inputs: <span align="center"><img width="252" height="252" src="figure/butterfly_lr.png"/></span>
+Input: <span align="center"><img width="252" height="252" src="figure/butterfly_lr.png"/></span>
 
 Output: <span align="center"><img width="252" height="252" src="figure/butterfly_sr.png"/></span>
 
