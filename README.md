@@ -63,7 +63,7 @@ Source of original paper results: [https://arxiv.org/pdf/1501.00092v3.pdf](https
 
 In the following table, the psnr value in `()` indicates the result of the project, and `-` indicates no test.
 
-| Method | Scale |          Set5 (PSNR/SSIM)           |          Set14(PSNR/SSIM)           |     BSD200(PSNR/SSIM)      |
+| Method | Scale |          Set5 (PSNR/SSIM)           |          Set14 (PSNR/SSIM)          |     BSD200 (PSNR/SSIM)     |
 |:------:|:-----:|:-----------------------------------:|:-----------------------------------:|:--------------------------:|
 | SRCNN  |   2   | 36.66(**36.72**)/0.9542(**0.9552**) | 32.45(**32.44**)/0.9067(**0.9066**) | 30.29(**-**)/0.8977(**-**) |
 | SRCNN  |   3   | 32.75(**29.82**)/0.9090(**0.8904**) | 29.30(**27.42**)/0.8215(**0.8380**) | 27.18(**-**)/0.7971(**-**) |
