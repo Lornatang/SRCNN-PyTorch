@@ -130,22 +130,6 @@ dmypy.json
 .DS_Store
 
 # Program run create directory.
-figure
 data
 results
 samples
-
-# Program run create file.
-*.BMP
-*.PNG
-*.JPG
-*.JPEG
-*.bmp
-*.png
-*.jpg
-*.jpeg
-*.mp4
-*.zip
-*.csv
-*.pth.tar
-*.mdb

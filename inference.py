@@ -63,6 +63,8 @@ def main(args):
     sr_image = imgproc.ycbcr2bgr(sr_ycbcr_image)
     cv2.imwrite(args.output_path, sr_image * 255.0)
 
+    print(f"SR image save to `{args.output_path}`")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Using the SRCNN model generator super-resolution images.")

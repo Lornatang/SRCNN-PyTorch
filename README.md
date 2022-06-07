@@ -69,9 +69,21 @@ In the following table, the psnr value in `()` indicates the result of the proje
 | SRCNN  |   3   | 32.75(**29.82**)/0.9090(**0.8904**) | 29.30(**27.42**)/0.8215(**0.8380**) | 27.18(**-**)/0.7971(**-**) |
 | SRCNN  |   4   | 30.49(**25.34**)/0.8628(**0.7910**) | 27.50(**23.81**)/0.7513(**0.7366**) | 25.60(**-**)/0.7184(**-**) |
 
+```bash
+# Download `srcnn_x2-T91-7d6e0623.pth.tar` weights to `./results/pretrained_models`
+# More detail see `README.md<Download weights>`
+python ./inference.py --inputs_path ./figure/butterfly_lr.png --output_path ./figure/butterfly_sr.png --weights_path ./results/pretrained_models/srcnn_x2-T91-7d6e0623.pth.tar
+```
 
-Low resolution / Recovered High Resolution / Ground Truth
-<span align="center"><img src="figure/result.png"/></span>
+Inputs: <span align="center"><img width="252" height="252" src="figure/butterfly_lr.png"/></span>
+
+Output: <span align="center"><img width="252" height="252" src="figure/butterfly_sr.png"/></span>
+
+```text
+Build SRCNN model successfully.
+Load SRCNN model weights `./results/pretrained_models/srcnn_x2-T91-7d6e0623.pth.tar` successfully.
+SR image save to `./figure/butterfly_sr.png`
+```
 
 ## Contributing
 
